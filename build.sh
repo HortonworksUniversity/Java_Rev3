@@ -18,7 +18,7 @@ fi
 
 REPO_DIR=$1
 #Determine the course directory, which is the first part of the REPO_DIR up until the underscore character
-@arr = split(/_/, $str);
+@arr = split(/_/, $REPO_DIR);
 COURSE_DIR=$arr[0]
 mkdir /root/$COURSE_DIR
 echo -e "Course files being copied to /root/$COURSE_DIR"
