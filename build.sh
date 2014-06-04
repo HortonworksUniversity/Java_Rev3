@@ -8,10 +8,10 @@ fi
 
 SKIP_IMAGES=
 FORCE=
-if [ $2 == "force" ]; then
+if [[ $2 == "force" ]]; then
   FORCE=true
   echo "NOTE: Rebuilding classroom environment, removing any local changes..."
-elif [ $2 == "skip-images" ]; then
+elif [[ $2 == "skip-images" ]]; then
   SKIP_IMAGES=true
   echo "NOTE: Skipping Docker image file updates..."
 fi
