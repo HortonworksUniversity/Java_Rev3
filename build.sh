@@ -11,14 +11,18 @@ FORCE=
 if [[ $2 == "force" ]]; then
   FORCE=true
   echo "NOTE: Rebuilding classroom environment, removing any local changes..."
-elif [ $2 == "skip-images" ]; then
+elif [[ $2 == "skip-images" ]]; then
   SKIP_IMAGES=true
   echo "NOTE: Skipping Docker image file updates..."
 fi
 
-DS_DIR=$1
+REPO_DIR=$1
+#Determine the course directory, which is the first part of the REPO_DIR up until the underscore character
+COURSE_DIR=${REPO_DIR%%_*}
+mkdir /root/$COURSE_DIR
+echo -e "Course files being copied to /root/$COURSE_DIR"
 
-cd /root/$DS_DIR
+cd /root/$REPO_DIR
 if [[ ! -z $FORCE ]];
 then
   git reset HEAD --hard
@@ -64,10 +68,13 @@ fi
 # Copy utility scripts into /root/scripts, which is already in the PATH
 echo "Copying utility scripts..."
 cp /root/dockerfiles/start_scripts/* /root/scripts/
-cp /root/$DS_DIR/scripts/* /root/scripts/
-
+cp /root/$REPO_DIR/scripts/* /root/scripts/
 
 cp /root/dockerfiles/hdp_node/configuration_files/core_hadoop/* /etc/hadoop/conf/
+
+#Copy lab files
+mkdir /root/$COURSE_DIR/labs
+cp -r /root/$REPO_DIR/labs/*  /root/$COURSE_DIR/labs/
 
 #Replace /etc/hosts with one that contains the Docker server names
 cp /root/scripts/hosts /etc/
