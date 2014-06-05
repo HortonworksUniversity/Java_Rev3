@@ -4,6 +4,7 @@
 
 apt-get install curl
 apt-get install hive
+cp /root/dockerfiles/hdp_node/configuration_files/hive/* /etc/hive/conf/
 
 # Build hwxu/hdp_storm_node
 echo -e "\n*** Building hwux/hdp_storm_node ***\n"
