@@ -3,7 +3,6 @@
 . /root/dockerfiles/start_scripts/build.sh $@ && (echo "Parent build.sh failed"; exit 1)
 
 apt-get install curl
-cp /root/dockerfiles/hdp_node/configuration_files/hive/* /etc/hive/conf/
 
 # Build hwxu/hdp_storm_node
 echo -e "\n*** Building hwux/hdp_storm_node ***\n"
