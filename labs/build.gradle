@@ -18,6 +18,9 @@ repositories {
   maven {
     url="http://conjars.org/repo"
   }
+  maven {
+    url="http://clojars.org/repo"
+  }
 }
 
 dependencies {
