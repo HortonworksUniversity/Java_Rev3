@@ -24,5 +24,8 @@ echo -e "\n*** Build of hwxu/hdp_storm_node complete! ***\n"
 
 remove_untagged_images.sh
 
+# Copy Eclipse workspace files
+mkdir -p /root/$COURSE_DIR/workspace
+cp -r /root/$REPO_DIR/workspace/*  /root/$COURSE_DIR/workspace/
 
 echo -e "\n*** The lab environment has successfully been built for this classroom VM ***\n"
