@@ -1,0 +1,15 @@
+//project.ext.mainclass = 'com.hortonworks.cascading.WordCount'
+project.ext.archiveName = 'cascade.jar'
+
+apply from: '/root/java/labs/build.gradle'
+
+task copyCascadingToLib(type: Copy) {
+    into "$buildDir/output/fatjar/lib"
+    from configurations.cascading
+}
+jar.dependsOn(copyCascadingToLib)
+jar {
+  from "$buildDir/output/fatjar"
+}
+
+

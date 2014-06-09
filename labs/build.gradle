@@ -10,6 +10,13 @@ description = """Hadoop Job"""
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
+configurations {
+  cascading 
+  compile {
+    extendsFrom cascading
+  }
+}
+
 repositories {
   mavenCentral()
   maven {
@@ -34,10 +41,10 @@ dependencies {
     compile 'org.apache.avro:avro-mapred:1.7.6:hadoop2'
     compile 'org.apache.avro:avro-mapred:1.7.6:hadoop2'
     compile 'org.apache.storm:storm-core:0.9.1.2.1.2.0-402'
-    compile 'cascading:cascading-core:2.5.4'
-    compile 'cascading:cascading-local:2.5.4'
-    compile 'cascading:cascading-hadoop:2.5.4'
-    compile 'cascading:cascading-xml:2.5.4'
+    cascading 'cascading:cascading-core:2.5.2'
+    cascading 'cascading:cascading-local:2.5.2'
+    cascading 'cascading:cascading-hadoop:2.5.2'
+    cascading 'cascading:cascading-xml:2.5.2'
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.hamcrest:hamcrest-all:1.3'
