@@ -13,7 +13,7 @@ import org.apache.commons.cli.ParseException;
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.flow.FlowDef;
-import cascading.flow.hadoop.HadoopFlowConnector;
+import cascading.flow.hadoop2.Hadoop2MR1FlowConnector;
 import cascading.flow.local.LocalFlowConnector;
 import cascading.operation.Aggregator;
 import cascading.operation.Function;
@@ -90,7 +90,7 @@ public class WordCount {
       source = new Hfs(sourceScheme, inputPath);
       Scheme sinkScheme = new TextLine(new Fields(FIELDS.word.name(), FIELDS.count.name()));
       sink = new Hfs(sinkScheme, outputPath, SinkMode.REPLACE);
-      flowConnector = new HadoopFlowConnector(properties);
+      flowConnector = new Hadoop2MR1FlowConnector(properties);
     }
 
     FlowDef def = new FlowDef()

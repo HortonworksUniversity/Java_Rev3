@@ -13,7 +13,7 @@ import org.apache.commons.cli.ParseException;
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.flow.FlowDef;
-import cascading.flow.hadoop.HadoopFlowConnector;
+import cascading.flow.hadoop2.Hadoop2MR1FlowConnector;
 import cascading.flow.local.LocalFlowConnector;
 import cascading.operation.aggregator.Average;
 import cascading.operation.aggregator.MaxValue;
@@ -79,7 +79,8 @@ public class StockAnalyzer {
     assembly = new Discard(assembly, new Fields(FIELDS.div_symbol.name(), FIELDS.div_date.name()));
 
     /*
-     * THIS IS THE PREFERRED APPROACH, BUT IT DOES NOT WORK - needs further investigation
+     * THIS IS THE PREFERRED APPROACH, BUT IT DOES NOT WORK - needs further
+     * investigation
      * 
      * assembly = new Each(assembly, new Fields(FIELDS.stock_symbol.name(),
      * FIELDS.date.name(), FIELDS.stock_price_high.name(),
@@ -152,15 +153,13 @@ public class StockAnalyzer {
       dividendsSource = new Hfs(dividendSourceScheme, dividendsPath);
       Scheme sinkScheme = new TextDelimited(false, ",");
       sink = new Hfs(sinkScheme, outputPath, SinkMode.REPLACE);
-      flowConnector = new HadoopFlowConnector(properties);
+      flowConnector = new Hadoop2MR1FlowConnector(properties);
     }
-    
-    FlowDef def = new FlowDef()
-      .addSource(SOURCE_TAP_NAMES.stocks.name(), stocksSource)
-      .addSource(SOURCE_TAP_NAMES.dividends.name(), dividendsSource)
-      .addTailSink(buildStockAnalysisAssembly(), sink)
-      .setName("stock-analyzer");
-    
+
+    FlowDef def = new FlowDef().addSource(SOURCE_TAP_NAMES.stocks.name(), stocksSource)
+        .addSource(SOURCE_TAP_NAMES.dividends.name(), dividendsSource).addTailSink(buildStockAnalysisAssembly(), sink)
+        .setName("stock-analyzer");
+
     Flow flow = flowConnector.connect(def);
     flow.complete();
   }

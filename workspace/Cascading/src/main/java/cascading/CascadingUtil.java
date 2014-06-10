@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import riffle.process.Process;
 import cascading.cascade.Cascade;
 import cascading.flow.hadoop.HadoopFlow;
+import cascading.flow.hadoop2.Hadoop2MR1FlowConnector;
 
 import com.google.common.collect.Lists;
 
@@ -45,6 +46,7 @@ public abstract class CascadingUtil {
     String cascadingCore = ClassUtil.findContainingJar(Cascade.class);
     String cascadingHadoop = ClassUtil.findContainingJar(HadoopFlow.class);
     String commonsCompiler = ClassUtil.findContainingJar(CompileException.class);
+    String cascadingHadoop2 = ClassUtil.findContainingJar(Hadoop2MR1FlowConnector.class);
 
     assert jgrapht != null;
     assert riffle != null;
@@ -53,7 +55,7 @@ public abstract class CascadingUtil {
     assert cascadingHadoop != null;
     assert commonsCompiler != null;
 
-    List<String> jars = Lists.newArrayList(jgrapht, riffle, janino, cascadingCore, cascadingHadoop, commonsCompiler);
+    List<String> jars = Lists.newArrayList(jgrapht, riffle, janino, cascadingCore, cascadingHadoop, cascadingHadoop2, commonsCompiler);
 
     for (Class<?> clazz : classes) {
       String jar = ClassUtil.findContainingJar(clazz);
