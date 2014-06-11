@@ -18,7 +18,7 @@ configurations {
 }
 
 repositories {
-  mavenCentral()
+  jcenter()
   maven {
     url="http://repo.hortonworks.com/content/repositories/releases/"
   }
