@@ -20,8 +20,22 @@ description = """Storm Job"""
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
+sourceSets {
+  multilang {
+    resources {
+      srcDir 'src/multilang/resources'
+      output.resourcesDir = "$buildDir/resources/multilang/resources"
+    }
+  }
+  
+  main {
+    compileClasspath += multilang.output
+    runtimeClasspath += multilang.output
+  }
+}
+
 repositories {
-  mavenCentral()
+  jcenter()
   maven {
     url="http://repo.hortonworks.com/content/repositories/releases/"
   }
@@ -58,6 +72,7 @@ task deleteJar(type: Delete) {
 clean.dependsOn(deleteJar)
 
 shadowJar {
+  from sourceSets.multilang.output.resourcesDir.parent
   mergeServiceFiles()
   exclude(dependency('org.apache.storm:storm-core:0.9.1.2.1.2.0-402'))
 }
