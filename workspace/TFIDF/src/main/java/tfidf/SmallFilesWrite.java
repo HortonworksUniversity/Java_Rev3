@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 
 import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
@@ -29,19 +30,22 @@ public class SmallFilesWrite {
           + "\", \"type\":\"string\"},"
           + "{\"name\":\"" + FIELD_CONTENTS
           + "\", \"type\":\"bytes\"}]}";
-  public static final Schema SCHEMA = Schema.parse(SCHEMA_JSON);
+  public static final Schema SCHEMA = new Schema.Parser().parse(SCHEMA_JSON);
 
   public static void writeToAvro(File srcPath,
           OutputStream outputStream)
           throws IOException {
+    Collection<File> files = FileUtils.listFiles(srcPath, null, false);
+
     @SuppressWarnings("resource")
     DataFileWriter<Object> writer =
             new DataFileWriter<Object>(
                 new GenericDatumWriter<Object>())
                 .setSyncInterval(100);                 
     writer.setCodec(CodecFactory.deflateCodec(5));  
-    writer.create(SCHEMA, outputStream);         
-    for (Object obj : FileUtils.listFiles(srcPath, null, false)) {
+    writer.setMeta("recordCount", files.size());
+    writer.create(SCHEMA, outputStream);
+    for (Object obj : files) {
       File file = (File) obj;
       String filename = file.getName();
       byte content[] = FileUtils.readFileToByteArray(file);
@@ -50,6 +54,8 @@ public class SmallFilesWrite {
       record.put(FIELD_CONTENTS, ByteBuffer.wrap(content)); 
       writer.append(record);                                 
     }
+    
+    System.out.println("Wrote " + files.size() + " records");
 
     IOUtils.cleanup(null, writer);
     IOUtils.cleanup(null, outputStream);

@@ -3,10 +3,12 @@ package tfidf;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.avro.file.DataFileReader;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.mapred.FsInput;
 import org.apache.avro.mapreduce.AvroKeyInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
@@ -70,8 +72,13 @@ public class TfIdfDriver extends Configured implements Tool {
     FileOutputFormat.setOutputCompressorClass(job3, SnappyCodec.class);
     FileOutputFormat.setCompressOutput(job3, true);    
     
-    conf3.setInt("totalDocs",
-        FileSystem.getLocal(conf3).listStatus(new Path("/home/train/data/enron/enron_mail_20110402/maildir/mann-k/all_documents")).length);
+    //Get the total document count from the Avro file metadata
+    DataFileReader<Object> reader =
+        new DataFileReader<Object>(new FsInput(new Path("enron/mann.avro"), conf3),
+            new GenericDatumReader<Object>()); 
+    conf3.setLong("totalDocs",
+        reader.getMetaLong("recordCount"));
+    reader.close();
 
     job3.setMapperClass(TermDocumentCountMapper.class);
     job3.setReducerClass(TfIdfReducer.class);
@@ -79,6 +86,7 @@ public class TfIdfDriver extends Configured implements Tool {
     job3.setOutputFormatClass(SequenceFileOutputFormat.class);
     job3.setOutputKeyClass(Text.class);
     job3.setOutputValueClass(Text.class);
+
 
 
     return 0;

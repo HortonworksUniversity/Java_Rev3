@@ -18,7 +18,7 @@ public class TfIdfReducer extends Reducer<Text, Text, Text, Text> {
   private Text outValue = new Text();
 
   protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-    int totalDocs = context.getConfiguration().getInt("totalDocs", 0);
+    long totalDocs = context.getConfiguration().getLong("totalDocs", 0);
 
     int totalDocsForWord = 0;
     Map<String, String> tempFrequencies = new HashMap<String, String>();

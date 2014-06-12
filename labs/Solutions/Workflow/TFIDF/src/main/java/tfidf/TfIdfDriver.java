@@ -3,10 +3,12 @@ package tfidf;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.avro.file.DataFileReader;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.mapred.FsInput;
 import org.apache.avro.mapreduce.AvroKeyInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
@@ -29,9 +31,6 @@ public class TfIdfDriver extends Configured implements Tool {
     Job job1 = Job.getInstance(getConf(), "TermWordCountPerDocument");
     job1.setJarByClass(getClass());
     Configuration conf1 = job1.getConfiguration();
-    job1.addArchiveToClassPath(new Path("enron/avro-1.7.2.jar"));
-    job1.addArchiveToClassPath(new Path("enron/avro-mapred-1.7.2.jar"));
-    job1.addArchiveToClassPath(new Path("enron/paranamer-2.2.jar"));
     FileInputFormat.setInputPaths(job1, new Path("enron/mann.avro"));
     Path out1 = new Path("tfidf/step1");
     out1.getFileSystem(conf1).delete(out1, true);
@@ -73,8 +72,13 @@ public class TfIdfDriver extends Configured implements Tool {
     FileOutputFormat.setOutputCompressorClass(job3, SnappyCodec.class);
     FileOutputFormat.setCompressOutput(job3, true);    
     
-    conf3.setInt("totalDocs",
-        FileSystem.getLocal(conf3).listStatus(new Path("/home/train/labs/data/enron/enron_mail_20110402/maildir/mann-k/all_documents")).length);
+    //Get the total document count from the Avro file metadata
+    DataFileReader<Object> reader =
+        new DataFileReader<Object>(new FsInput(new Path("enron/mann.avro"), conf3),
+            new GenericDatumReader<Object>()); 
+    conf3.setLong("totalDocs",
+        reader.getMetaLong("recordCount"));
+    reader.close();
 
     job3.setMapperClass(TermDocumentCountMapper.class);
     job3.setReducerClass(TfIdfReducer.class);
@@ -86,28 +90,28 @@ public class TfIdfDriver extends Configured implements Tool {
     JobControl jobControl = new JobControl("tfidf");
     ControlledJob cjb1 = new ControlledJob(job1,null);
     jobControl.addJob(cjb1);
-    
+
     List<ControlledJob> depend1 = new ArrayList<ControlledJob>();
     depend1.add(cjb1);
     ControlledJob cjb2 = new ControlledJob(job2, depend1);
     jobControl.addJob(cjb2);
-    
+
     List<ControlledJob> depend2 = new ArrayList<ControlledJob>();
     depend2.add(cjb2);
     ControlledJob cjb3 = new ControlledJob(job3,depend2);
     jobControl.addJob(cjb3);
-    
+
     Thread thread = new Thread(jobControl);
     thread.start();
-    
+
     while(!jobControl.allFinished()) {
-    	Thread.sleep(3000);
-    	System.out.println("****************");
-    	System.out.println("Job 1: " + cjb1.getJobState());
-    	System.out.println("Job 2: " + cjb2.getJobState());
-    	System.out.println("Job 3: " + cjb3.getJobState());
+        Thread.sleep(3000);
+        System.out.println("****************");
+        System.out.println("Job 1: " + cjb1.getJobState());
+        System.out.println("Job 2: " + cjb2.getJobState());
+        System.out.println("Job 3: " + cjb3.getJobState());
     }
-    
+
     jobControl.stop();
     
     return 0;
