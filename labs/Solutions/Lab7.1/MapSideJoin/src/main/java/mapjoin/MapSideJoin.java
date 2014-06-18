@@ -94,7 +94,7 @@ public class MapSideJoin extends Configured implements Tool {
 		job.setMapOutputValueClass(StockPrices.class);
 		
 		job.setNumReduceTasks(0);
-		job.addCacheFile(new URI("/user/root/dividends/NYSE_dividends_A.csv"));
+		job.addCacheFile(new URI("dividends/NYSE_dividends_A.csv"));
 		conf.set("stockSymbol", args[0]);
 		conf.set(TextOutputFormat.SEPERATOR, ",");
 
