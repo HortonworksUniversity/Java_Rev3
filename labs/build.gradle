@@ -11,9 +11,10 @@ sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 configurations {
-  cascading 
+  cascading
+  avro 
   compile {
-    extendsFrom cascading
+    extendsFrom cascading, avro
   }
 }
 
@@ -38,9 +39,8 @@ dependencies {
     compile 'org.apache.hbase:hbase-client:0.98.1-hadoop2'
     compile 'org.apache.hbase:hbase-server:0.98.1-hadoop2'
     compile 'org.apache.hbase:hbase-common:0.98.1-hadoop2'
-    compile 'org.apache.avro:avro-mapred:1.7.6:hadoop2'
-    compile 'org.apache.avro:avro-mapred:1.7.6:hadoop2'
     compile 'org.apache.storm:storm-core:0.9.1.2.1.2.0-402'
+    avro 'org.apache.avro:avro-mapred:1.7.6:hadoop2'
     cascading 'cascading:cascading-core:2.5.4'
     cascading 'cascading:cascading-local:2.5.4'
     cascading 'cascading:cascading-hadoop:2.5.4'
