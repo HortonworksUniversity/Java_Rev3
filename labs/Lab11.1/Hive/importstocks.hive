@@ -10,4 +10,4 @@ CREATE TABLE stocks (xchange STRING,
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ',';
 
-LOAD DATA LOCAL INPATH '/home/train/labs/data/stock_prices/NYSE_daily_prices_A.csv' OVERWRITE INTO TABLE stocks;
+LOAD DATA LOCAL INPATH '/root/java/labs/data/stock_prices/NYSE_daily_prices_A.csv' OVERWRITE INTO TABLE stocks;

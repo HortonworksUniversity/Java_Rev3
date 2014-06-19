@@ -1,4 +1,4 @@
-register /home/train/workspace/Pig/stockudfs.jar;
+register stockudfs.jar;
 
 define HighestClosingPriceWindow stockudfs.HighestClosingPriceWindow('4');
 

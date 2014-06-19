@@ -1,4 +1,4 @@
-register /home/train/workspace/Pig/stockudfs.jar;
+register stockudfs.jar;
 
 stockdata = LOAD 'stocksA' using PigStorage(',') AS 
 	(exchange:chararray, 
