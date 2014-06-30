@@ -126,6 +126,13 @@ public class StockDividendFilter extends Configured implements Tool {
 
 	public static class StockFilterReducer extends Reducer<Stock, DoubleWritable, Text, DoubleWritable> {
 		private Text outputKey = new Text();
+    		private Object stockSymbol;
+		
+		@Override
+    		protected void setup(Context context) throws IOException,
+        		InterruptedException {
+		  		stockSymbol = context.getConfiguration().get("stockSymbol");
+    }
 		
 		@Override
 		protected void reduce(Stock key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {

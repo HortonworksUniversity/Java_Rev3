@@ -21,7 +21,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -56,7 +55,6 @@ public class StockImporter extends Configured implements Tool {
   @Override
   public int run(String[] args) throws Exception {
     Job job = Job.getInstance(getConf(), "StockImportJob");
-    Configuration conf = job.getConfiguration();
     job.setJarByClass(StockImporter.class);
 
     FileInputFormat.setInputPaths(job, new Path("stocksA"));

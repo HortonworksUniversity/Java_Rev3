@@ -6,8 +6,11 @@ fs -put /root/java/labs/demos/stocks.csv
 fs -mkdir dividends
 fs -mkdir counties
 fs -put /root/java/labs/Lab2.1/constitution.txt
+fs -mkdir inverted
+fs -put /root/java/labs/Lab2.3/hortonworks.txt inverted
 fs -mkdir populations
 fs -mkdir smallfiles
+fs -put /root/java/labs/demos/WordCount2/*.txt smallfiles
 fs -mkdir multiinputs
 fs -mkdir stocks
 fs -put /root/java/workspace/BloomFilter/stocks/NYSE_daily_prices_B.csv stocks
