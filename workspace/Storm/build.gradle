@@ -1,7 +1,12 @@
 project.ext.archiveName = 'storm-app.jar'
 
 buildscript {
-  repositories { jcenter() }
+  repositories { 
+    jcenter() 
+    maven {
+      url="http://repo.hortonworks.com/content/repositories/releases/"
+    }
+  }
   dependencies {
     classpath 'com.github.jengelman.gradle.plugins:shadow:0.9.0-M2'
   }
@@ -51,6 +56,8 @@ dependencies {
     compile 'org.apache.storm:storm-core:0.9.1.2.1.2.0-402'
     compile 'org.apache.storm:storm-hdfs:0.9.1.2.1.2.0-402'
     compile 'org.apache.storm:storm-hbase:0.9.1.2.1.2.0-402'
+    compile 'org.apache.storm:storm-kafka:0.9.1.2.1.2.0-402'
+    compile 'org.apache.kafka:kafka_2.10:0.8.1.1'
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.hamcrest:hamcrest-all:1.3'

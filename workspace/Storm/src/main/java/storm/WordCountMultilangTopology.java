@@ -83,13 +83,13 @@ public class WordCountMultilangTopology {
     if (local) {
       conf.setMaxTaskParallelism(3);
       LocalCluster cluster = new LocalCluster();
-      cluster.submitTopology("word-count", conf, builder.createTopology());
+      cluster.submitTopology("multilang-word-count", conf, builder.createTopology());
       Thread.sleep(10000);
       cluster.shutdown();
     }
     else {
       conf.setNumWorkers(3);
-      StormSubmitter.submitTopology("word-count", conf, builder.createTopology());
+      StormSubmitter.submitTopology("multilang-word-count", conf, builder.createTopology());
     }
   }
 }
