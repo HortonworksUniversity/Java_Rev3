@@ -4,6 +4,24 @@
 
 apt-get install curl
 
+# Build hwxu/hdp_zookeeper_node
+echo -e "\n*** Building hwux/hdp_zookeeper_node ***\n"
+cd /root/dockerfiles/hdp_zookeeper_node
+docker build -t hwxu/hdp_zookeeper_node .
+echo -e "\n*** Build of hwxu/hdp_zookeeper_node complete! ***\n"
+
+# Build hwxu/hdp_hbase_node
+echo -e "\n*** Building hwux/hdp_hbase_node ***\n"
+cd /root/dockerfiles/hdp_hbase_node
+docker build -t hwxu/hdp_hbase_node .
+echo -e "\n*** Build of hwxu/hdp_hbase_node complete! ***\n"
+
+# Build hwxu/hdp_kafka_node
+echo -e "\n*** Building hwux/hdp_kafka_node ***\n"
+cd /root/$REPO_DIR/dockerfiles/hdp_kafka_node
+docker build -t hwxu/hdp_kafka_node .
+echo -e "\n*** Build of hwxu/hdp_kafka_node complete! ***\n"
+
 # Build hwxu/hdp_storm_node
 echo -e "\n*** Building hwux/hdp_storm_node ***\n"
 cd /root/$REPO_DIR/dockerfiles/hdp_storm_node
