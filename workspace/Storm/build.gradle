@@ -1,14 +1,11 @@
 project.ext.archiveName = 'storm-app.jar'
 
 buildscript {
-  repositories { 
-    jcenter() 
-    maven {
-      url="http://repo.hortonworks.com/content/repositories/releases/"
-    }
+  repositories {
+    jcenter()
   }
   dependencies {
-    classpath 'com.github.jengelman.gradle.plugins:shadow:0.9.0-M2'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
   }
 }
 
@@ -24,6 +21,13 @@ description = """Storm Job"""
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
+
+repositories {
+  jcenter()
+  maven {
+    url="http://repo.hortonworks.com/content/repositories/releases/"
+  }
+}
 
 sourceSets {
   multilang {
@@ -53,10 +57,10 @@ repositories {
 }
 
 dependencies {
-    compile 'org.apache.storm:storm-core:0.9.1.2.1.2.0-402'
-    compile 'org.apache.storm:storm-hdfs:0.9.1.2.1.2.0-402'
-    compile 'org.apache.storm:storm-hbase:0.9.1.2.1.2.0-402'
-    compile 'org.apache.storm:storm-kafka:0.9.1.2.1.2.0-402'
+    compile 'org.apache.storm:storm-core:0.9.1.2.1.3.0-563'
+    compile 'org.apache.storm:storm-hdfs:0.9.1.2.1.3.0-563'
+    compile 'org.apache.storm:storm-hbase:0.9.1.2.1.3.0-563'
+    compile 'org.apache.storm:storm-kafka:0.9.1.2.1.3.0-563'
     compile 'org.apache.kafka:kafka_2.10:0.8.1.1'
 
     testCompile 'junit:junit:4.11'
@@ -81,7 +85,9 @@ clean.dependsOn(deleteJar)
 shadowJar {
   from sourceSets.multilang.output.resourcesDir.parent
   mergeServiceFiles()
-  exclude(dependency('org.apache.storm:storm-core:0.9.1.2.1.2.0-402'))
+  dependencies {
+    exclude(dependency('org.apache.storm:storm-core:0.9.1.2.1.3.0-563'))
+  }
 }
 
 jar {
