@@ -1,5 +1,7 @@
 #!/bin/bash
 
+hdfs dfsadmin -safemode wait
+
 pig << DONE
 
 fs -put /root/java/labs/demos/stocks.csv

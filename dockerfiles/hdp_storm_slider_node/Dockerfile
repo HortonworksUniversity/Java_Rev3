@@ -14,6 +14,9 @@ RUN echo "export PATH=$PATH:/opt/slider/bin" >> /etc/profile
 ADD conf/ /root/conf/
 ADD start-scripts/ /root/start-scripts/
 
+# Install custom yarn-site.xml
+RUN cp /root/conf/hadoop/yarn-site.xml /etc/hadoop/conf
+
 # Install slider client config file
 RUN cp /root/conf/slider/slider-client.xml /opt/slider/conf/slider-client.xml
 RUN cp /root/conf/slider/agent.ini /opt/slider/agent/conf/agent.ini
