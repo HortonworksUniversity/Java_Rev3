@@ -15,23 +15,27 @@ public class WordCount {
 
   @SuppressWarnings("serial")
   public static void main(String... args) {
-    JavaSparkContext sc = new JavaSparkContext("yarn-standalone", "word-count");
+    JavaSparkContext sc = new JavaSparkContext("yarn-client", "word-count");
     JavaRDD<String> file = sc.textFile("hdfs://namenode:8020/user/root/constitution.txt");
     JavaRDD<String> words = file.flatMap(new FlatMapFunction<String, String>() {
       public Iterable<String> call(String s) {
         return Arrays.asList(s.split(" "));
       }
     });
-    JavaPairRDD<String, Integer> pairs = words.map(new PairFunction<String, String, Integer>() {
+    
+    JavaPairRDD<String, Integer> pairs = words.mapToPair(new PairFunction<String, String, Integer>() {
       public Tuple2<String, Integer> call(String s) {
         return new Tuple2<String, Integer>(s, 1);
       }
     });
+
     JavaPairRDD<String, Integer> counts = pairs.reduceByKey(new Function2<Integer, Integer, Integer>() {
-      public Integer call(Integer a, Integer b) {
-        return a + b;
+      @Override
+      public Integer call(Integer i1, Integer i2) {
+        return i1 + i2;
       }
     });
+
     counts.saveAsTextFile("hdfs://namenode:8020/user/root/sparkwordcount");
   }
 }
