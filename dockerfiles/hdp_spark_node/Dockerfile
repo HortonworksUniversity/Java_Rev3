@@ -8,14 +8,14 @@ MAINTAINER Rich Raposa, rich@hortonworks.com
 RUN yum -y install gcc-gfortran --enablerepo=updates 
 
 #Install Spark
-RUN wget https://s3-us-west-1.amazonaws.com/vm-us-west/spark-1.0.0-bin-2.4.0.2.1.3.0-563.tgz -O /tmp/spark.tgz
+RUN wget http://public-repo-1.hortonworks.com/spark/centos6/tar/spark-1.0.1.2.1.3.0-563-bin-2.4.0.2.1.3.0-563.tgz -O /tmp/spark.tgz
 RUN tar -C /usr/lib -zxvf /tmp/spark.tgz
-RUN ln -s /usr/lib/spark-1.0.0-bin-2.4.0.2.1.3.0-563 /usr/lib/spark
+RUN ln -s /usr/lib/spark-1.0.1.2.1.3.0-563-bin-2.4.0.2.1.3.0-563/ /usr/lib/spark
 RUN rm -f /tmp/spark.tgz
 
 # Set environment variables needed to run Spark on YARN
 RUN echo "export YARN_CONF_DIR=/etc/hadoop/conf" >> /etc/bashrc
-RUN echo "export SPARK_JAR=/usr/lib/spark/lib/spark-assembly-1.0.0-hadoop2.4.0.2.1.3.0-563.jar" >> /etc/bashrc
+RUN echo "export SPARK_JAR=/usr/lib/spark/lib/spark-assembly-1.0.1.2.1.3.0-563-hadoop2.4.0.2.1.3.0-563.jar" >> /etc/bashrc
 RUN echo "export SPARK_WORKER_MEMORY=512m" >> /etc/bashrc
 RUN echo "export SPARK_MASTER_MEMORY=512m" >> /etc/bashrc
 RUN echo "export MASTER=yarn-client" >> /etc/bashrc
