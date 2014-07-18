@@ -24,7 +24,7 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 
-public class HdfsTopology {
+public class HdfsPersistence {
 
   public static void main(String[] args) throws Exception {
 

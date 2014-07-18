@@ -84,6 +84,8 @@ shadowJar {
   mergeServiceFiles()
   dependencies {
     exclude(dependency("org.apache.storm:storm-core:${project.ext.stormversion}"))
+    exclude(dependency("org.slf4j:slf4j-log4j12:*"))
+    exclude(dependency("org.slf4j:log4j-over-slf4j:*"))
   }
 }
 

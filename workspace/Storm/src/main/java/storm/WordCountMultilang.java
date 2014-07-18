@@ -23,7 +23,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-public class WordCountMultilangTopology {
+public class WordCountMultilang {
   public static class SplitSentence extends ShellBolt implements IRichBolt {
     private static final long serialVersionUID = 507522194575046077L;
 

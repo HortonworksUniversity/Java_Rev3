@@ -22,7 +22,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-public class WordCountTopology {
+public class WordCount {
   public static class SplitSentence extends BaseBasicBolt {
     private static final long serialVersionUID = 507522194575046077L;
 
@@ -40,7 +40,7 @@ public class WordCountTopology {
     }
   }
 
-  public static class WordCount extends BaseBasicBolt {
+  public static class WordCountBolt extends BaseBasicBolt {
     private static final long serialVersionUID = -6582222576578405193L;
 
     Map<String, Integer> counts = new HashMap<String, Integer>();
@@ -75,7 +75,7 @@ public class WordCountTopology {
     builder.setSpout("spout", new RandomSentenceSpout(), 5);
 
     builder.setBolt("split", new SplitSentence(), 8).shuffleGrouping("spout");
-    builder.setBolt("count", new WordCount(), 12).fieldsGrouping("split", new Fields("word"));
+    builder.setBolt("count", new WordCountBolt(), 12).fieldsGrouping("split", new Fields("word"));
 
     Config conf = new Config();
     conf.setDebug(true);

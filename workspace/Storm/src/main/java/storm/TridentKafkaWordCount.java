@@ -28,6 +28,7 @@ import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.DRPCClient;
 
 public class TridentKafkaWordCount {
   public static class Split extends BaseFunction {
@@ -83,6 +84,12 @@ public class TridentKafkaWordCount {
     else {
       conf.setNumWorkers(3);
       StormSubmitter.submitTopology("trident-kafka-word-count", conf, buildTopology(null));
+      DRPCClient client = new DRPCClient("namenode", 3772);
+      for (int i = 0; i < 100; i++) {
+        System.out.println("DRPC RESULT: " + client.execute("words", "cat the dog jumped"));
+        Thread.sleep(1000);
+      }
+      client.close();
     }
   }
 }
