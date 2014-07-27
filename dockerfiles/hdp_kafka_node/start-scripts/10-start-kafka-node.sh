@@ -5,7 +5,3 @@ if [[ ("$NODE_TYPE" == "workernode") ]]; then
    ln -s /opt/kafka/config/server-${host}.properties /opt/kafka/config/server.properties
    cat /root/conf/supervisor/kafka-supervisord.conf >> /etc/supervisord.conf
 fi
-
-chkconfig supervisord on
-/etc/init.d/supervisord start
-

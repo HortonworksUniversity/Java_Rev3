@@ -8,6 +8,6 @@ MAINTAINER Rich Raposa, rich@hortonworks.com
 ADD conf/ /root/conf/
 ADD start-scripts/ /root/start-scripts/
 
-# Install configs and enable supervisor daemon
+# Install configs
 RUN cp /root/conf/storm/* /etc/storm/conf
 
