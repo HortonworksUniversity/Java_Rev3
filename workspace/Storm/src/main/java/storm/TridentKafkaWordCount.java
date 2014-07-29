@@ -51,11 +51,16 @@ public class TridentKafkaWordCount {
 
     TridentTopology topology = new TridentTopology();
     TridentState wordCounts = topology.newStream("spout", kafkaSpout).parallelismHint(16)
-        .each(new Fields("str"), new Split(), new Fields("word")).groupBy(new Fields("word"))
-        .persistentAggregate(new MemoryMapState.Factory(), new Count(), new Fields("count")).parallelismHint(16);
+        .each(new Fields("str"), new Split(), new Fields("word"))
+        .groupBy(new Fields("word"))
+        .persistentAggregate(new MemoryMapState.Factory(), new Count(), new Fields("count"))
+        .parallelismHint(16);
 
-    topology.newDRPCStream("words", drpc).each(new Fields("args"), new Split(), new Fields("word")).groupBy(new Fields("word"))
-        .stateQuery(wordCounts, new Fields("word"), new MapGet(), new Fields("count")).each(new Fields("count"), new FilterNull())
+    topology.newDRPCStream("words", drpc)
+        .each(new Fields("args"), new Split(), new Fields("word"))
+        .groupBy(new Fields("word"))
+        .stateQuery(wordCounts, new Fields("word"), new MapGet(), new Fields("count"))
+        .each(new Fields("count"), new FilterNull())
         .aggregate(new Fields("count"), new Sum(), new Fields("sum"));
 
     return topology.build();
