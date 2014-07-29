@@ -1,7 +1,31 @@
-//project.ext.mainclass = 'com.hortonworks.cascading.WordCount'
 project.ext.archiveName = 'cascade.jar'
+project.ext.cascadingVersion = '2.5.5'
 
 apply from: '/root/java/labs/build.gradle'
+
+configurations {
+  cascading
+  compile {
+    extendsFrom cascading
+  }
+}
+
+repositories {
+  maven {
+    url="http://conjars.org/repo"
+  }
+  maven {
+    url="http://clojars.org/repo"
+  }
+}
+dependencies {
+    cascading "cascading:cascading-core:$project.ext.cascadingVersion"
+    cascading "cascading:cascading-local:$project.ext.cascadingVersion"
+    cascading "cascading:cascading-hadoop:$project.ext.cascadingVersion"
+    cascading "cascading:cascading-xml:$project.ext.cascadingVersion"
+    cascading "cascading:cascading-hadoop2-mr1:$project.ext.cascadingVersion"
+    testCompile "cascading:cascading-platform:$project.ext.cascadingVersion"
+}
 
 task copyCascadingToLib(type: Copy) {
     into "$buildDir/output/fatjar/lib"

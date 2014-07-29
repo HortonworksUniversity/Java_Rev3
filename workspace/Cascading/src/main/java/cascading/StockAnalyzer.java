@@ -15,19 +15,18 @@ import cascading.flow.FlowConnector;
 import cascading.flow.FlowDef;
 import cascading.flow.hadoop2.Hadoop2MR1FlowConnector;
 import cascading.flow.local.LocalFlowConnector;
-import cascading.operation.aggregator.Average;
-import cascading.operation.aggregator.MaxValue;
-import cascading.operation.aggregator.MinValue;
-import cascading.operation.aggregator.Sum;
+import cascading.operation.Identity;
 import cascading.operation.text.DateFormatter;
 import cascading.operation.text.DateParser;
 import cascading.pipe.CoGroup;
 import cascading.pipe.Each;
-import cascading.pipe.Every;
 import cascading.pipe.Pipe;
+import cascading.pipe.assembly.AggregateBy;
+import cascading.pipe.assembly.Coerce;
 import cascading.pipe.assembly.Discard;
+import cascading.pipe.assembly.FirstBy;
 import cascading.pipe.assembly.Rename;
-import cascading.pipe.joiner.InnerJoin;
+import cascading.pipe.joiner.LeftJoin;
 import cascading.property.AppProps;
 import cascading.scheme.Scheme;
 import cascading.scheme.hadoop.TextDelimited;
@@ -37,6 +36,8 @@ import cascading.tap.hadoop.Hfs;
 import cascading.tap.local.FileTap;
 import cascading.tuple.Fields;
 
+import com.google.common.collect.Ordering;
+
 public class StockAnalyzer {
 
   public enum CLI_OPTIONS {
@@ -44,8 +45,9 @@ public class StockAnalyzer {
   }
 
   private enum FIELDS {
-    exchange, stock_symbol, date, stock_price_open, stock_price_close, stock_price_high, stock_price_low, stock_volume,
-    stock_price_adj_close, dividends, div_symbol, div_date, max_high, min_low, avg_close, sum_dividend;
+    exchange, stock_symbol, date, stock_price_open, stock_price_close,
+    stock_price_high, stock_price_low, stock_volume, stock_price_adj_close,
+    dividends, div_symbol, div_date, max_high, min_low, max_dividend;
   }
 
   private enum SOURCE_TAP_NAMES {
@@ -53,57 +55,54 @@ public class StockAnalyzer {
   }
 
   public static Pipe buildStockAnalysisAssembly() {
-    DateParser dateParser = new DateParser(new Fields(FIELDS.date.name()), "yyyy-MM-dd");
-    DateFormatter dateFormatter = new DateFormatter(new Fields(FIELDS.date.name()), "yyyy");
-    Pipe lhs = new Discard(new Pipe(SOURCE_TAP_NAMES.stocks.name()), new Fields(FIELDS.exchange.name(), FIELDS.stock_volume.name(),
-        FIELDS.stock_price_adj_close.name()));
-    lhs = new Each(lhs, new Fields(FIELDS.date.name()), dateParser, Fields.REPLACE);
-    lhs = new Each(lhs, new Fields(FIELDS.date.name()), dateFormatter, Fields.REPLACE);
+    DateParser dateParser = new DateParser(new Fields(FIELDS.date.name()),
+        "yyyy-MM-dd");
+    DateFormatter dateFormatter = new DateFormatter(new Fields(
+        FIELDS.date.name()), "yyyy");
+    Pipe lhs = new Discard(new Pipe(SOURCE_TAP_NAMES.stocks.name()),
+        new Fields(FIELDS.exchange.name(), FIELDS.stock_price_close.name(),
+            FIELDS.stock_volume.name(), FIELDS.stock_price_adj_close.name()));
 
-    Pipe rhs = new Discard(new Pipe(SOURCE_TAP_NAMES.dividends.name()), new Fields(FIELDS.exchange.name()));
-    rhs = new Each(rhs, new Fields(FIELDS.date.name()), dateParser, Fields.REPLACE);
-    rhs = new Each(rhs, new Fields(FIELDS.date.name()), dateFormatter, Fields.REPLACE);
-    rhs = new Rename(rhs, new Fields(FIELDS.stock_symbol.name(), FIELDS.date.name()), new Fields(FIELDS.div_symbol.name(),
+    Pipe rhs = new Discard(new Pipe(SOURCE_TAP_NAMES.dividends.name()),
+        new Fields(FIELDS.exchange.name()));
+    rhs = new Rename(rhs, new Fields(FIELDS.stock_symbol.name(),
+        FIELDS.date.name()), new Fields(FIELDS.div_symbol.name(),
         FIELDS.div_date.name()));
 
-    Pipe assembly = new CoGroup(lhs, new Fields(FIELDS.stock_symbol.name(), FIELDS.date.name()), rhs, new Fields(
-        FIELDS.div_symbol.name(), FIELDS.div_date.name()), new InnerJoin());
+    Pipe assembly = new CoGroup(lhs, new Fields(FIELDS.stock_symbol.name(),
+        FIELDS.date.name()), rhs, new Fields(FIELDS.div_symbol.name(),
+        FIELDS.div_date.name()), new LeftJoin());
 
-    assembly = new Every(assembly, new Fields(FIELDS.dividends.name()), new Sum(new Fields(FIELDS.sum_dividend.name())), Fields.ALL);
-    assembly = new Every(assembly, new Fields(FIELDS.stock_price_close.name()), new Average(new Fields(FIELDS.avg_close.name())),
-        Fields.ALL);
-    assembly = new Every(assembly, new Fields(FIELDS.stock_price_high.name()), new MaxValue(new Fields(FIELDS.max_high.name())),
-        Fields.ALL);
-    assembly = new Every(assembly, new Fields(FIELDS.stock_price_low.name()), new MinValue(new Fields(FIELDS.min_low.name())),
-        Fields.ALL);
-    assembly = new Discard(assembly, new Fields(FIELDS.div_symbol.name(), FIELDS.div_date.name()));
+    assembly = new Each(assembly, new Fields(FIELDS.stock_symbol.name(),
+        FIELDS.date.name(), FIELDS.stock_price_high.name(),
+        FIELDS.stock_price_low.name(), FIELDS.dividends.name()), new Identity());
+    assembly = new Coerce(assembly, new Fields(FIELDS.stock_price_high.name(),
+        FIELDS.stock_price_low.name(), FIELDS.dividends.name()), double.class,
+        double.class, double.class);
 
-    /*
-     * THIS IS THE PREFERRED APPROACH, BUT IT DOES NOT WORK - needs further
-     * investigation
-     * 
-     * assembly = new Each(assembly, new Fields(FIELDS.stock_symbol.name(),
-     * FIELDS.date.name(), FIELDS.stock_price_high.name(),
-     * FIELDS.stock_price_low.name(), FIELDS.stock_price_close.name(),
-     * FIELDS.dividends.name()), new Identity()); Fields groupingFields = new
-     * Fields(FIELDS.stock_symbol.name(), FIELDS.date.name()); Fields high = new
-     * Fields(FIELDS.stock_price_high.name(), Double.class);
-     * high.setComparator(FIELDS.stock_price_high.name(),
-     * Collections.reverseOrder(Ordering.natural())); FirstBy maxHigh = new
-     * FirstBy(high, new Fields(FIELDS.max_high.name())); Fields low = new
-     * Fields(FIELDS.stock_price_low.name(), Double.class);
-     * low.setComparator(FIELDS.stock_price_low.name(), Ordering.natural());
-     * FirstBy minLow = new FirstBy(low, new Fields(FIELDS.min_low.name()));
-     * Fields dividends = new Fields(FIELDS.dividends.name());
-     * dividends.setComparator(FIELDS.dividends.name(), Ordering.natural());
-     * Fields close = new Fields(FIELDS.stock_price_close.name());
-     * close.setComparator(FIELDS.stock_price_close.name(), Ordering.natural());
-     * SumBy totalDividends = new SumBy(dividends, new
-     * Fields(FIELDS.sum_dividend.name()), Double.class); AverageBy averageClose
-     * = new AverageBy(close, new Fields(FIELDS.avg_close.name())); assembly =
-     * new AggregateBy(assembly, groupingFields, maxHigh, minLow,
-     * totalDividends, averageClose);
-     */
+    assembly = new Each(assembly, new Fields(FIELDS.date.name()), dateParser,
+        Fields.REPLACE);
+    assembly = new Each(assembly, new Fields(FIELDS.date.name()),
+        dateFormatter, Fields.REPLACE);
+
+    Fields groupingFields = new Fields(FIELDS.stock_symbol.name(),
+        FIELDS.date.name());
+
+    Fields high = new Fields(FIELDS.stock_price_high.name());
+    high.setComparators(Ordering.natural().reverse());
+    FirstBy maxHigh = new FirstBy(high, new Fields(FIELDS.max_high.name()));
+
+    Fields low = new Fields(FIELDS.stock_price_low.name());
+    low.setComparators(Ordering.natural());
+    FirstBy minLow = new FirstBy(low, new Fields(FIELDS.min_low.name()));
+
+    Fields dividends = new Fields(FIELDS.dividends.name());
+    dividends.setComparators(Ordering.natural().reverse());
+    FirstBy maxDividend = new FirstBy(dividends, new Fields(
+        FIELDS.max_dividend.name()));
+
+    assembly = new AggregateBy(assembly, groupingFields, maxHigh, minLow,
+        maxDividend);
 
     return assembly;
   }
@@ -112,14 +111,19 @@ public class StockAnalyzer {
   public static void main(String[] args) throws ParseException {
 
     Options options = new Options();
-    options.addOption(new Option(CLI_OPTIONS.stocks.name(), true, "Stocks input path for job"));
-    options.addOption(new Option(CLI_OPTIONS.dividends.name(), true, "Dividends input path for job"));
-    options.addOption(new Option(CLI_OPTIONS.output.name(), true, "Output path for job"));
-    options.addOption(new Option(CLI_OPTIONS.local.name(), false, "Run locally?"));
+    options.addOption(new Option(CLI_OPTIONS.stocks.name(), true,
+        "Stocks input path for job"));
+    options.addOption(new Option(CLI_OPTIONS.dividends.name(), true,
+        "Dividends input path for job"));
+    options.addOption(new Option(CLI_OPTIONS.output.name(), true,
+        "Output path for job"));
+    options.addOption(new Option(CLI_OPTIONS.local.name(), false,
+        "Run locally?"));
     CommandLineParser parser = new BasicParser();
     CommandLine cmd = parser.parse(options, args);
     HelpFormatter help = new HelpFormatter();
-    if (!cmd.hasOption(CLI_OPTIONS.stocks.name()) || !cmd.hasOption(CLI_OPTIONS.dividends.name())
+    if (!cmd.hasOption(CLI_OPTIONS.stocks.name())
+        || !cmd.hasOption(CLI_OPTIONS.dividends.name())
         || !cmd.hasOption(CLI_OPTIONS.output.name())) {
       help.printHelp("<cascading jar>", options);
       System.exit(1);
@@ -138,8 +142,10 @@ public class StockAnalyzer {
     Tap sink = null;
 
     if (local) {
-      Scheme stockSourceScheme = new cascading.scheme.local.TextDelimited(true, ",");
-      Scheme dividendSourceScheme = new cascading.scheme.local.TextDelimited(true, ",");
+      Scheme stockSourceScheme = new cascading.scheme.local.TextDelimited(true,
+          ",");
+      Scheme dividendSourceScheme = new cascading.scheme.local.TextDelimited(
+          true, ",");
       stocksSource = new FileTap(stockSourceScheme, stocksPath);
       dividendsSource = new FileTap(dividendSourceScheme, dividendsPath);
       Scheme sinkScheme = new cascading.scheme.local.TextDelimited(true, ",");
@@ -156,8 +162,10 @@ public class StockAnalyzer {
       flowConnector = new Hadoop2MR1FlowConnector(properties);
     }
 
-    FlowDef def = new FlowDef().addSource(SOURCE_TAP_NAMES.stocks.name(), stocksSource)
-        .addSource(SOURCE_TAP_NAMES.dividends.name(), dividendsSource).addTailSink(buildStockAnalysisAssembly(), sink)
+    FlowDef def = new FlowDef()
+        .addSource(SOURCE_TAP_NAMES.stocks.name(), stocksSource)
+        .addSource(SOURCE_TAP_NAMES.dividends.name(), dividendsSource)
+        .addTailSink(buildStockAnalysisAssembly(), sink)
         .setName("stock-analyzer");
 
     Flow flow = flowConnector.connect(def);
