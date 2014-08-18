@@ -4,6 +4,9 @@
 
 apt-get install curl
 
+#Oozie-client is needed until the VM is updated
+apt-get -y install oozie-client
+
 # Build hwxu/hdp_zookeeper_node
 echo -e "\n*** Building hwux/hdp_zookeeper_node ***\n"
 cd /root/dockerfiles/hdp_zookeeper_node
@@ -17,16 +20,16 @@ docker build -t hwxu/hdp_hbase_node .
 echo -e "\n*** Build of hwxu/hdp_hbase_node complete! ***\n"
 
 # Build hwxu/hdp_kafka_node
-echo -e "\n*** Building hwux/hdp_kafka_node ***\n"
-cd /root/$REPO_DIR/dockerfiles/hdp_kafka_node
-docker build -t hwxu/hdp_kafka_node .
-echo -e "\n*** Build of hwxu/hdp_kafka_node complete! ***\n"
+#echo -e "\n*** Building hwux/hdp_kafka_node ***\n"
+#cd /root/$REPO_DIR/dockerfiles/hdp_kafka_node
+#docker build -t hwxu/hdp_kafka_node .
+#echo -e "\n*** Build of hwxu/hdp_kafka_node complete! ***\n"
 
 # Build hwxu/hdp_storm_node
-echo -e "\n*** Building hwux/hdp_storm_node ***\n"
-cd /root/$REPO_DIR/dockerfiles/hdp_storm_node
-docker build -t hwxu/hdp_storm_node .
-echo -e "\n*** Build of hwxu/hdp_storm_node complete! ***\n"
+#echo -e "\n*** Building hwux/hdp_storm_node ***\n"
+#cd /root/$REPO_DIR/dockerfiles/hdp_storm_node
+#docker build -t hwxu/hdp_storm_node .
+#echo -e "\n*** Build of hwxu/hdp_storm_node complete! ***\n"
 
 # Build hwxu/hdp_spark_node
 #echo -e "\n*** Building hwux/hdp_spark_node ***\n"
