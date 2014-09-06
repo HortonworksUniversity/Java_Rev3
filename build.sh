@@ -45,6 +45,13 @@ echo -e "\n*** Build of hwxu/hdp_hbase_node complete! ***\n"
 
 remove_untagged_images.sh
 
+#Unzip eclipse
+if [[ ! -d "/root/eclipse" ]]; then
+	cd /root/
+	tar -xvf /root/eclipse.tgz
+	chown -R root:root /root/eclipse
+fi
+
 # Copy Eclipse workspace files
 mkdir -p /root/$COURSE_DIR/workspace
 cp -ar /root/$REPO_DIR/workspace  /root/$COURSE_DIR/
