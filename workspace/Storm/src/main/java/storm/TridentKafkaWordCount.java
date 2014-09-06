@@ -46,6 +46,7 @@ public class TridentKafkaWordCount {
   public static StormTopology buildTopology(LocalDRPC drpc) {
     TridentKafkaConfig spoutConfig = new TridentKafkaConfig(new ZkHosts("namenode:2181,resourcemanager:2181,hiveserver:2181"), "sentences");
     spoutConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+    spoutConfig.forceFromStart = true;
 
     TransactionalTridentKafkaSpout kafkaSpout = new TransactionalTridentKafkaSpout(spoutConfig);
 
@@ -80,7 +81,7 @@ public class TridentKafkaWordCount {
       LocalCluster cluster = new LocalCluster();
       cluster.submitTopology("trident-kafka-word-count", conf, buildTopology(drpc));
       for (int i = 0; i < 100; i++) {
-        System.out.println("DRPC RESULT: " + drpc.execute("words", "love rich"));
+        System.out.println("DRPC RESULT: " + drpc.execute("words", "good happy"));
         Thread.sleep(1000);
       }
       drpc.shutdown();
@@ -91,7 +92,7 @@ public class TridentKafkaWordCount {
       StormSubmitter.submitTopology("trident-kafka-word-count", conf, buildTopology(null));
       DRPCClient client = new DRPCClient("namenode", 3772);
       for (int i = 0; i < 100; i++) {
-        System.out.println("DRPC RESULT: " + client.execute("words", "cat the dog jumped"));
+        System.out.println("DRPC RESULT: " + client.execute("words", "good happy"));
         Thread.sleep(1000);
       }
       client.close();
