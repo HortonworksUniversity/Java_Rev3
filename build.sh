@@ -56,4 +56,7 @@ fi
 mkdir -p /root/$COURSE_DIR/workspace
 cp -ar /root/$REPO_DIR/workspace  /root/$COURSE_DIR/
 
+#Fix an annoying bug w/ Eclipse
+mkdir -p /root/java/workspace/.metadata/.plugins/org.eclipse.core.resources/.projects/RemoteSystemsTempFiles/
+
 echo -e "\n*** The lab environment has successfully been built for this classroom VM ***\n"
