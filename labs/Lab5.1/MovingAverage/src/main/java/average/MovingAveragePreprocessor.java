@@ -62,7 +62,7 @@ public class MovingAveragePreprocessor extends Configured implements Tool {
 		job.setMapOutputKeyClass(Stock.class);
 		job.setMapOutputValueClass(DoubleWritable.class);
 
-		job.setNumReduceTasks(1);
+		job.setNumReduceTasks(5);
 		
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
