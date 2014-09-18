@@ -32,8 +32,6 @@ import com.google.common.collect.Lists;
  * containing all dependent jars in /lib within the jar file. This can be easily
  * done in a Gradle build
  * 
- * @author mikebin
- * 
  */
 public abstract class CascadingUtil {
 

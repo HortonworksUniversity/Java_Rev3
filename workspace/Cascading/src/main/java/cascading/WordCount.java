@@ -36,14 +36,6 @@ import cascading.tuple.Fields;
 
 public class WordCount {
 
-  public enum CLI_OPTIONS {
-    input, output, local, tez;
-  }
-
-  private enum FIELDS {
-    num, line, word, count;
-  }
-
   @SuppressWarnings("rawtypes")
   public static Pipe buildWordCountAssembly() {
     Pipe assembly = new Pipe("wordcount");
@@ -60,27 +52,22 @@ public class WordCount {
   public static void main(String[] args) throws ParseException {
 
     Options options = new Options();
-    options.addOption(new Option(CLI_OPTIONS.input.name(), true,
-        "Input path for job"));
-    options.addOption(new Option(CLI_OPTIONS.output.name(), true,
-        "Output path for job"));
-    options.addOption(new Option(CLI_OPTIONS.local.name(), false,
-        "Run locally?"));
-    options
-        .addOption(new Option(CLI_OPTIONS.tez.name(), false, "Run with Tez?"));
+    options.addOption(new Option("input", true, "Input path for job"));
+    options.addOption(new Option("output", true, "Output path for job"));
+    options.addOption(new Option("local", false, "Run locally?"));
+    options.addOption(new Option("tez", false, "Run with Tez?"));
     CommandLineParser parser = new BasicParser();
     CommandLine cmd = parser.parse(options, args);
     HelpFormatter help = new HelpFormatter();
-    if (!cmd.hasOption(CLI_OPTIONS.input.name())
-        || !cmd.hasOption(CLI_OPTIONS.output.name())) {
+    if (!cmd.hasOption("input") || !cmd.hasOption("output")) {
       help.printHelp("<cascading jar>", options);
       System.exit(1);
     }
 
-    String inputPath = cmd.getOptionValue(CLI_OPTIONS.input.name());
-    String outputPath = cmd.getOptionValue(CLI_OPTIONS.output.name());
-    boolean local = cmd.hasOption(CLI_OPTIONS.local.name());
-    boolean tez = cmd.hasOption(CLI_OPTIONS.tez.name());
+    String inputPath = cmd.getOptionValue("input");
+    String outputPath = cmd.getOptionValue("output");
+    boolean local = cmd.hasOption("local");
+    boolean tez = cmd.hasOption("tez");
 
     Properties properties = new Properties();
 
@@ -90,19 +77,17 @@ public class WordCount {
     Tap sink = null;
     if (local) {
       Scheme sourceScheme = new cascading.scheme.local.TextLine(new Fields(
-          FIELDS.num.name(), FIELDS.line.name()));
+          "num", "line"));
       source = new FileTap(sourceScheme, inputPath);
       Scheme sinkScheme = new cascading.scheme.local.TextLine(new Fields(
-          FIELDS.word.name(), FIELDS.count.name()));
+          "word", "count"));
       sink = new FileTap(sinkScheme, outputPath, SinkMode.REPLACE);
       flowConnector = new LocalFlowConnector(properties);
     }
     else {
-      Scheme sourceScheme = new TextLine(new Fields(FIELDS.num.name(),
-          FIELDS.line.name()));
+      Scheme sourceScheme = new TextLine(new Fields("num", "line"));
       source = new Hfs(sourceScheme, inputPath);
-      Scheme sinkScheme = new TextLine(new Fields(FIELDS.word.name(),
-          FIELDS.count.name()));
+      Scheme sinkScheme = new TextLine(new Fields("word", "count"));
       sink = new Hfs(sinkScheme, outputPath, SinkMode.REPLACE);
       if (tez) {
         properties.put("tez.lib.uris",

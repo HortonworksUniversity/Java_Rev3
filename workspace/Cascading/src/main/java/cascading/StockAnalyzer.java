@@ -42,66 +42,43 @@ import com.google.common.collect.Ordering;
 
 public class StockAnalyzer {
 
-  public enum CLI_OPTIONS {
-    stocks, dividends, output, local, tez;
-  }
-
-  private enum FIELDS {
-    exchange, stock_symbol, date, stock_price_open, stock_price_close,
-    stock_price_high, stock_price_low, stock_volume, stock_price_adj_close,
-    dividends, div_symbol, div_date, max_high, min_low, max_dividend;
-  }
-
-  private enum SOURCE_TAP_NAMES {
-    stocks, dividends;
-  }
-
   public static Pipe buildStockAnalysisAssembly() {
-    DateParser dateParser = new DateParser(new Fields(FIELDS.date.name()),
-        "yyyy-MM-dd");
-    DateFormatter dateFormatter = new DateFormatter(new Fields(
-        FIELDS.date.name()), "yyyy");
-    Pipe lhs = new Discard(new Pipe(SOURCE_TAP_NAMES.stocks.name()),
-        new Fields(FIELDS.exchange.name(), FIELDS.stock_price_close.name(),
-            FIELDS.stock_volume.name(), FIELDS.stock_price_adj_close.name()));
+    DateParser dateParser = new DateParser(new Fields("date"), "yyyy-MM-dd");
+    DateFormatter dateFormatter = new DateFormatter(new Fields("date"), "yyyy");
+    Pipe lhs = new Discard(new Pipe("stocks"), new Fields("exchange",
+        "stock_price_close", "stock_volume", "stock_price_adj_close"));
 
-    Pipe rhs = new Discard(new Pipe(SOURCE_TAP_NAMES.dividends.name()),
-        new Fields(FIELDS.exchange.name()));
-    rhs = new Rename(rhs, new Fields(FIELDS.stock_symbol.name(),
-        FIELDS.date.name()), new Fields(FIELDS.div_symbol.name(),
-        FIELDS.div_date.name()));
+    Pipe rhs = new Discard(new Pipe("dividends"), new Fields("exchange"));
+    rhs = new Rename(rhs, new Fields("stock_symbol", "date"), new Fields(
+        "div_symbol", "div_date"));
 
-    Pipe assembly = new CoGroup(lhs, new Fields(FIELDS.stock_symbol.name(),
-        FIELDS.date.name()), rhs, new Fields(FIELDS.div_symbol.name(),
-        FIELDS.div_date.name()), new LeftJoin());
+    Pipe assembly = new CoGroup(lhs, new Fields("stock_symbol", "date"), rhs,
+        new Fields("div_symbol", "div_date"), new LeftJoin());
 
-    assembly = new Each(assembly, new Fields(FIELDS.stock_symbol.name(),
-        FIELDS.date.name(), FIELDS.stock_price_high.name(),
-        FIELDS.stock_price_low.name(), FIELDS.dividends.name()), new Identity());
-    assembly = new Coerce(assembly, new Fields(FIELDS.stock_price_high.name(),
-        FIELDS.stock_price_low.name(), FIELDS.dividends.name()), double.class,
-        double.class, double.class);
+    assembly = new Each(assembly, new Fields("stock_symbol", "date",
+        "stock_price_high", "stock_price_low", "dividends"), new Identity());
+    assembly = new Coerce(assembly, new Fields("stock_price_high",
+        "stock_price_low", "dividends"), double.class, double.class,
+        double.class);
 
-    assembly = new Each(assembly, new Fields(FIELDS.date.name()), dateParser,
+    assembly = new Each(assembly, new Fields("date"), dateParser,
         Fields.REPLACE);
-    assembly = new Each(assembly, new Fields(FIELDS.date.name()),
-        dateFormatter, Fields.REPLACE);
+    assembly = new Each(assembly, new Fields("date"), dateFormatter,
+        Fields.REPLACE);
 
-    Fields groupingFields = new Fields(FIELDS.stock_symbol.name(),
-        FIELDS.date.name());
+    Fields groupingFields = new Fields("stock_symbol", "date");
 
-    Fields high = new Fields(FIELDS.stock_price_high.name());
+    Fields high = new Fields("stock_price_high");
     high.setComparators(Ordering.natural().reverse());
-    FirstBy maxHigh = new FirstBy(high, new Fields(FIELDS.max_high.name()));
+    FirstBy maxHigh = new FirstBy(high, new Fields("max_high"));
 
-    Fields low = new Fields(FIELDS.stock_price_low.name());
+    Fields low = new Fields("stock_price_low");
     low.setComparators(Ordering.natural());
-    FirstBy minLow = new FirstBy(low, new Fields(FIELDS.min_low.name()));
+    FirstBy minLow = new FirstBy(low, new Fields("min_low"));
 
-    Fields dividends = new Fields(FIELDS.dividends.name());
+    Fields dividends = new Fields("dividends");
     dividends.setComparators(Ordering.natural().reverse());
-    FirstBy maxDividend = new FirstBy(dividends, new Fields(
-        FIELDS.max_dividend.name()));
+    FirstBy maxDividend = new FirstBy(dividends, new Fields("max_dividend"));
 
     assembly = new AggregateBy(assembly, groupingFields, maxHigh, minLow,
         maxDividend);
@@ -113,31 +90,26 @@ public class StockAnalyzer {
   public static void main(String[] args) throws ParseException {
 
     Options options = new Options();
-    options.addOption(new Option(CLI_OPTIONS.stocks.name(), true,
-        "Stocks input path for job"));
-    options.addOption(new Option(CLI_OPTIONS.dividends.name(), true,
+    options.addOption(new Option("stocks", true, "Stocks input path for job"));
+    options.addOption(new Option("dividends", true,
         "Dividends input path for job"));
-    options.addOption(new Option(CLI_OPTIONS.output.name(), true,
-        "Output path for job"));
-    options.addOption(new Option(CLI_OPTIONS.local.name(), false,
-        "Run locally?"));
-    options.addOption(new Option(CLI_OPTIONS.tez.name(), false,
-        "Run with Tez?"));
+    options.addOption(new Option("output", true, "Output path for job"));
+    options.addOption(new Option("local", false, "Run locally?"));
+    options.addOption(new Option("tez", false, "Run with Tez?"));
     CommandLineParser parser = new BasicParser();
     CommandLine cmd = parser.parse(options, args);
     HelpFormatter help = new HelpFormatter();
-    if (!cmd.hasOption(CLI_OPTIONS.stocks.name())
-        || !cmd.hasOption(CLI_OPTIONS.dividends.name())
-        || !cmd.hasOption(CLI_OPTIONS.output.name())) {
+    if (!cmd.hasOption("stocks") || !cmd.hasOption("dividends")
+        || !cmd.hasOption("output")) {
       help.printHelp("<cascading jar>", options);
       System.exit(1);
     }
 
-    String stocksPath = cmd.getOptionValue(CLI_OPTIONS.stocks.name());
-    String dividendsPath = cmd.getOptionValue(CLI_OPTIONS.dividends.name());
-    String outputPath = cmd.getOptionValue(CLI_OPTIONS.output.name());
-    boolean local = cmd.hasOption(CLI_OPTIONS.local.name());
-    boolean tez = cmd.hasOption(CLI_OPTIONS.tez.name());
+    String stocksPath = cmd.getOptionValue("stocks");
+    String dividendsPath = cmd.getOptionValue("dividends");
+    String outputPath = cmd.getOptionValue("output");
+    boolean local = cmd.hasOption("local");
+    boolean tez = cmd.hasOption("tez");
 
     Properties properties = new Properties();
     AppProps.setApplicationJarClass(properties, StockAnalyzer.class);
@@ -176,9 +148,8 @@ public class StockAnalyzer {
       }
     }
 
-    FlowDef def = new FlowDef()
-        .addSource(SOURCE_TAP_NAMES.stocks.name(), stocksSource)
-        .addSource(SOURCE_TAP_NAMES.dividends.name(), dividendsSource)
+    FlowDef def = new FlowDef().addSource("stocks", stocksSource)
+        .addSource("dividends", dividendsSource)
         .addTailSink(buildStockAnalysisAssembly(), sink)
         .setName("stock-analyzer");
 
