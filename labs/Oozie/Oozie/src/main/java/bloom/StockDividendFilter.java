@@ -1,11 +1,9 @@
 package bloom;
 
 import java.io.IOException;
-import java.net.URI;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -195,8 +193,7 @@ public class StockDividendFilter extends Configured implements Tool {
 		job2.setOutputKeyClass(Text.class);
 		job2.setOutputValueClass(DoubleWritable.class);
 		
-		DistributedCache.addCacheFile(new URI(FILTER_FILE), conf);
-		
+	
 		boolean job2success = job2.waitForCompletion(true);
 		if(!job2success) {
 			System.out.println("The FilterStocksJob failed!");
