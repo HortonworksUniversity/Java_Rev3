@@ -3,7 +3,7 @@
 . /root/dockerfiles/start_scripts/build.sh $@ && (echo "Parent build.sh failed"; exit 1)
 
 apt-get update
-apt-get install curl
+apt-get -y install curl
 
 #Oozie-client is needed until the VM is updated
 apt-get -y install oozie-client
