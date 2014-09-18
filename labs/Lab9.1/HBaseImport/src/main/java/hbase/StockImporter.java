@@ -7,7 +7,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -17,11 +16,12 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 
 public class StockImporter extends Configured implements Tool {
 
-	public static class StockImporterMapper extends Mapper<LongWritable, Text, NullWritable, NullWritable> {
+	public static class StockImporterMapper extends Mapper<LongWritable, Text, ImmutableBytesWritable, Put> {
 		private final String COMMA = ",";
 		
 		@Override
