@@ -8,6 +8,14 @@ apt-get install curl
 apt-get -y install oozie-client
 
 # Build hwxu/hdp_zookeeper_node
+echo -e "\n*** Building hwux/hdp_node ***\n"
+cd /root/dockerfiles/hdp_node
+docker build -t hwxu/hdp_node .
+echo -e "\n*** Build of hwxu/hdp_node complete! ***\n"
+
+
+
+# Build hwxu/hdp_zookeeper_node
 echo -e "\n*** Building hwux/hdp_zookeeper_node ***\n"
 cd /root/dockerfiles/hdp_zookeeper_node
 docker build -t hwxu/hdp_zookeeper_node .
