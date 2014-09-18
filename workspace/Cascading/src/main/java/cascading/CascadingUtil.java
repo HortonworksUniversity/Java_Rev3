@@ -19,6 +19,7 @@ import riffle.process.Process;
 import cascading.cascade.Cascade;
 import cascading.flow.hadoop.HadoopFlow;
 import cascading.flow.hadoop2.Hadoop2MR1FlowConnector;
+import cascading.flow.tez.Hadoop2TezFlowConnector;
 
 import com.google.common.collect.Lists;
 
@@ -38,15 +39,20 @@ public abstract class CascadingUtil {
 
   private static Logger logger = LoggerFactory.getLogger(CascadingUtil.class);
 
-  public static Properties addDependencyJars(Configuration conf, Class<?>... classes) {
+  public static Properties addDependencyJars(Configuration conf,
+      Class<?>... classes) {
     // Add standard Cascading library dependencies
     String jgrapht = ClassUtil.findContainingJar(Graph.class);
     String riffle = ClassUtil.findContainingJar(Process.class);
     String janino = ClassUtil.findContainingJar(Java.class);
     String cascadingCore = ClassUtil.findContainingJar(Cascade.class);
     String cascadingHadoop = ClassUtil.findContainingJar(HadoopFlow.class);
-    String commonsCompiler = ClassUtil.findContainingJar(CompileException.class);
-    String cascadingHadoop2 = ClassUtil.findContainingJar(Hadoop2MR1FlowConnector.class);
+    String commonsCompiler = ClassUtil
+        .findContainingJar(CompileException.class);
+    String cascadingHadoop2 = ClassUtil
+        .findContainingJar(Hadoop2MR1FlowConnector.class);
+    String cascadingTez = ClassUtil
+        .findContainingJar(Hadoop2TezFlowConnector.class);
 
     assert jgrapht != null;
     assert riffle != null;
@@ -54,8 +60,12 @@ public abstract class CascadingUtil {
     assert cascadingCore != null;
     assert cascadingHadoop != null;
     assert commonsCompiler != null;
+    assert cascadingHadoop2 != null;
+    assert cascadingTez != null;
 
-    List<String> jars = Lists.newArrayList(jgrapht, riffle, janino, cascadingCore, cascadingHadoop, cascadingHadoop2, commonsCompiler);
+    List<String> jars = Lists.newArrayList(jgrapht, riffle, janino,
+        cascadingCore, cascadingHadoop, cascadingHadoop2, commonsCompiler,
+        cascadingTez);
 
     for (Class<?> clazz : classes) {
       String jar = ClassUtil.findContainingJar(clazz);
@@ -66,7 +76,8 @@ public abstract class CascadingUtil {
     logger.info("Adding jars [{}] to distributed cache", jars);
 
     try {
-      new GenericOptionsParser(conf, new String[] { "-libjars", StringUtils.join(jars, ',') });
+      new GenericOptionsParser(conf, new String[] { "-libjars",
+          StringUtils.join(jars, ',') });
       return convertConfigurationToProperties(conf);
     }
     catch (IOException e) {
