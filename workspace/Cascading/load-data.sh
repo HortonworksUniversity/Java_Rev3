@@ -1,7 +1,7 @@
 #!/bin/bash
 
-hadoop fs -mkdir stocks
-hadoop fs -mkdir dividends
-hadoop fs -put NYSE_daily_prices_A.csv stocks
-hadoop fs -put NYSE_dividends_A.csv dividends
+hadoop fs -mkdir -p cstocks
+hadoop fs -mkdir -p cdividends
+hadoop fs -put -f NYSE_daily_prices_A.csv cstocks
+hadoop fs -put -f NYSE_dividends_A.csv cdividends
 
