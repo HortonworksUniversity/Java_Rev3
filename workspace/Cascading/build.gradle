@@ -1,5 +1,6 @@
 project.ext.archiveName = 'cascade.jar'
-project.ext.cascadingVersion = '2.5.5'
+project.ext.cascadingVersion = '3.0.0-wip-+'
+project.ext.tezVersion = '0.5.0'
 
 apply from: '/root/java/labs/build.gradle'
 
@@ -24,6 +25,7 @@ dependencies {
     cascading "cascading:cascading-hadoop:$project.ext.cascadingVersion"
     cascading "cascading:cascading-xml:$project.ext.cascadingVersion"
     cascading "cascading:cascading-hadoop2-mr1:$project.ext.cascadingVersion"
+    cascading "cascading:cascading-hadoop2-tez:$project.ext.cascadingVersion"
     testCompile "cascading:cascading-platform:$project.ext.cascadingVersion"
 }
 

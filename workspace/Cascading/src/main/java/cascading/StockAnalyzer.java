@@ -13,8 +13,10 @@ import org.apache.commons.cli.ParseException;
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.flow.FlowDef;
+import cascading.flow.FlowRuntimeProps;
 import cascading.flow.hadoop2.Hadoop2MR1FlowConnector;
 import cascading.flow.local.LocalFlowConnector;
+import cascading.flow.tez.Hadoop2TezFlowConnector;
 import cascading.operation.Identity;
 import cascading.operation.text.DateFormatter;
 import cascading.operation.text.DateParser;
@@ -41,7 +43,7 @@ import com.google.common.collect.Ordering;
 public class StockAnalyzer {
 
   public enum CLI_OPTIONS {
-    stocks, dividends, output, local;
+    stocks, dividends, output, local, tez;
   }
 
   private enum FIELDS {
@@ -119,6 +121,8 @@ public class StockAnalyzer {
         "Output path for job"));
     options.addOption(new Option(CLI_OPTIONS.local.name(), false,
         "Run locally?"));
+    options.addOption(new Option(CLI_OPTIONS.tez.name(), false,
+        "Run with Tez?"));
     CommandLineParser parser = new BasicParser();
     CommandLine cmd = parser.parse(options, args);
     HelpFormatter help = new HelpFormatter();
@@ -133,6 +137,7 @@ public class StockAnalyzer {
     String dividendsPath = cmd.getOptionValue(CLI_OPTIONS.dividends.name());
     String outputPath = cmd.getOptionValue(CLI_OPTIONS.output.name());
     boolean local = cmd.hasOption(CLI_OPTIONS.local.name());
+    boolean tez = cmd.hasOption(CLI_OPTIONS.tez.name());
 
     Properties properties = new Properties();
     AppProps.setApplicationJarClass(properties, StockAnalyzer.class);
@@ -159,7 +164,16 @@ public class StockAnalyzer {
       dividendsSource = new Hfs(dividendSourceScheme, dividendsPath);
       Scheme sinkScheme = new TextDelimited(false, ",");
       sink = new Hfs(sinkScheme, outputPath, SinkMode.REPLACE);
-      flowConnector = new Hadoop2MR1FlowConnector(properties);
+      if (tez) {
+        properties.put("tez.lib.uris",
+            "hdfs:///apps/tez-0.5.0/tez-0.5.0.tar.gz");
+        properties = FlowRuntimeProps.flowRuntimeProps().setGatherPartitions(4)
+            .buildProperties(properties);
+        flowConnector = new Hadoop2TezFlowConnector(properties);
+      }
+      else {
+        flowConnector = new Hadoop2MR1FlowConnector(properties);
+      }
     }
 
     FlowDef def = new FlowDef()
