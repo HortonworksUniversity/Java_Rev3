@@ -32,14 +32,6 @@ public class MovingAveragePreprocessor extends Configured implements Tool {
 	}
 	
 	
-	public static class PreprocessorPartitioner extends Partitioner<Stock, DoubleWritable> {
-		@Override
-		public int getPartition(Stock key, DoubleWritable value, int numPartitions) {
-			int partition = (key.getSymbol().charAt(0) - 'A') % numPartitions;
-			return partition;
-		}
-		
-	}
 
 	@Override
 	public int run(String[] arg0) throws Exception {
@@ -54,7 +46,6 @@ public class MovingAveragePreprocessor extends Configured implements Tool {
 
 		job.setMapperClass(PreprocessorMapper.class);
 		job.setReducerClass(Reducer.class);
-		job.setPartitionerClass(PreprocessorPartitioner.class);
 		job.setInputFormatClass(StockInputFormat.class);		
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 		job.setOutputKeyClass(Stock.class);
@@ -62,7 +53,7 @@ public class MovingAveragePreprocessor extends Configured implements Tool {
 		job.setMapOutputKeyClass(Stock.class);
 		job.setMapOutputValueClass(DoubleWritable.class);
 
-		job.setNumReduceTasks(5);
+		job.setNumReduceTasks(1);
 		
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
