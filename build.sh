@@ -68,6 +68,9 @@ cp -ar /root/$REPO_DIR/workspace  /root/$COURSE_DIR/
 #Fix an annoying bug w/ Eclipse
 mkdir -p /root/java/workspace/.metadata/.plugins/org.eclipse.core.resources/.projects/RemoteSystemsTempFiles/
 
+#Remove /root/workspace to avoid any confusion
+rm -rf /root/workspace
+
 #Fix bug in /etc/hosts (JIRA TRNG-715)
 echo "127.0.0.1       localhost     ubuntu" >> /etc/hosts
 
