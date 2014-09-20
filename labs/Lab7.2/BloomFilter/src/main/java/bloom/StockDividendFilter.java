@@ -41,13 +41,13 @@ public class StockDividendFilter extends Configured implements Tool {
       Mapper<LongWritable, Text, NullWritable, BloomFilter> {
     private String stockSymbol;
     private NullWritable outputKey = NullWritable.get();
-    private BloomFilter outputValue;
 
     @Override
     protected void setup(Context context) throws IOException,
         InterruptedException {
       stockSymbol = context.getConfiguration().get("stockSymbol");
-      outputValue = new BloomFilter(1000, 20, Hash.MURMUR_HASH);
+
+
     }
 
     @Override
@@ -64,36 +64,29 @@ public class StockDividendFilter extends Configured implements Tool {
     @Override
     protected void cleanup(Context context) throws IOException,
         InterruptedException {
-      context.write(outputKey, outputValue);
+
     }
   }
 
   public static class BloomReducer extends
       Reducer<NullWritable, BloomFilter, NullWritable, NullWritable> {
-    private BloomFilter allValues;
 
     @Override
     protected void setup(Context context) throws IOException,
         InterruptedException {
-      allValues = new BloomFilter(1000, 20, Hash.MURMUR_HASH);
+
     }
 
     @Override
     protected void reduce(NullWritable key, Iterable<BloomFilter> values,
         Context context) throws IOException, InterruptedException {
-      for (BloomFilter filter : values) {
-        allValues.or(filter);
-      }
+
     }
 
     @Override
     protected void cleanup(Context context) throws IOException,
         InterruptedException {
-      Configuration conf = context.getConfiguration();
-      Path path = new Path(FILTER_FILE);
-      FSDataOutputStream out = path.getFileSystem(conf).create(path);
-      allValues.write(out);
-      out.close();
+
     }
   }
 
@@ -111,11 +104,7 @@ public class StockDividendFilter extends Configured implements Tool {
       stockSymbol = context.getConfiguration().get("stockSymbol");
 
       // Initialize the dividends field
-      dividends = new BloomFilter(1000, 20, Hash.MURMUR_HASH);
-      FileSystem fs = FileSystem.get(context.getConfiguration());
-      FSDataInputStream in = fs.open(filter_file);
-      dividends.readFields(in);
-      in.close();
+
     }
 
     @Override
@@ -125,14 +114,9 @@ public class StockDividendFilter extends Configured implements Tool {
       if (words[1].equals(stockSymbol)) {
         outputKey.setSymbol(words[1]);
         outputKey.setDate(words[2]);
-        // Instantiate a Key and check for membership in the Bloom filter
         Key stockKey = new Key(outputKey.toString().getBytes());
-        if (dividends.membershipTest(stockKey)) {
-          outputValue.set(Double.parseDouble(words[6]));
-          context.write(
-              new StockTaggedKey(JoinData.STOCKS.ordinal(), outputKey),
-              outputValue);
-        }
+        // Check for membership in the Bloom filter
+
       }
     }
   }
