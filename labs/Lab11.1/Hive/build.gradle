@@ -1,4 +1,0 @@
-project.ext.archiveName = 'hiveudfs.jar'
-
-apply from: '/root/java/labs/build.gradle'
-

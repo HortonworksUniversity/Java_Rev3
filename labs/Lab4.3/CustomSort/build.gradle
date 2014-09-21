@@ -1,5 +1,0 @@
-project.ext.mainclass = 'customsort.DividendJob'
-project.ext.archiveName = 'dividendgrowth.jar'
-
-apply from: '/root/java/labs/build.gradle'
-
