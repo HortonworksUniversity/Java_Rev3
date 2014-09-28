@@ -1,41 +1,42 @@
 project.ext.archiveName = 'cascade.jar'
 project.ext.cascadingVersion = '3.0.0-wip-+'
-project.ext.tezVersion = '0.5.0'
+project.ext.scaldingVersion = '0.11.2'
 
-apply from: '/root/java/labs/build.gradle'
+apply plugin: 'scala'
+
+archivesBaseName = 'cascade'
 
 configurations {
   cascading
-  compile {
-    extendsFrom cascading
-  }
+  compile { extendsFrom cascading }
 }
 
 repositories {
-  maven {
-    url="http://conjars.org/repo"
-  }
-  maven {
-    url="http://clojars.org/repo"
-  }
-}
-dependencies {
-    cascading "cascading:cascading-core:$project.ext.cascadingVersion"
-    cascading "cascading:cascading-local:$project.ext.cascadingVersion"
-    cascading "cascading:cascading-hadoop:$project.ext.cascadingVersion"
-    cascading "cascading:cascading-xml:$project.ext.cascadingVersion"
-    cascading "cascading:cascading-hadoop2-mr1:$project.ext.cascadingVersion"
-    cascading "cascading:cascading-hadoop2-tez:$project.ext.cascadingVersion"
-    testCompile "cascading:cascading-platform:$project.ext.cascadingVersion"
+  mavenLocal()
+  jcenter()
+  maven { url = 'http://conjars.org/repo/' }
 }
 
-task copyCascadingToLib(type: Copy) {
-    into "$buildDir/output/fatjar/lib"
-    from configurations.cascading
+dependencies {
+  compile 'org.apache.hadoop:hadoop-client:2.4.1'
+  
+  cascading "com.twitter:scalding-core_2.10:$project.ext.scaldingVersion"
+  cascading "cascading:cascading-core:$project.ext.cascadingVersion"
+  cascading "cascading:cascading-local:$project.ext.cascadingVersion"
+  cascading "cascading:cascading-hadoop:$project.ext.cascadingVersion"
+  cascading "cascading:cascading-xml:$project.ext.cascadingVersion"
+  cascading "cascading:cascading-hadoop2-mr1:$project.ext.cascadingVersion"
+  cascading "cascading:cascading-hadoop2-tez:$project.ext.cascadingVersion"
+  
+  testCompile "cascading:cascading-platform:$project.ext.cascadingVersion"
 }
-jar.dependsOn(copyCascadingToLib)
+
 jar {
-  from "$buildDir/output/fatjar"
+  description = "Assembles a Hadoop-ready JAR file"
+  doFirst {
+    into( 'lib' ) { from configurations.cascading }
+  }
+  destinationDir = new File("${project.projectDir}")
 }
 
 
