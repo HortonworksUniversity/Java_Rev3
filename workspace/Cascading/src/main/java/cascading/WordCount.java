@@ -1,26 +1,14 @@
 package cascading;
 
-import java.util.Properties;
-
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-
-import cascading.flow.Flow;
-import cascading.flow.FlowConnector;
-import cascading.flow.FlowDef;
-import cascading.flow.FlowRuntimeProps;
+import cascading.flow.*;
 import cascading.flow.hadoop2.Hadoop2MR1FlowConnector;
 import cascading.flow.local.LocalFlowConnector;
 import cascading.flow.tez.Hadoop2TezFlowConnector;
 import cascading.operation.Aggregator;
+import cascading.operation.BaseOperation;
 import cascading.operation.Function;
+import cascading.operation.FunctionCall;
 import cascading.operation.aggregator.Count;
-import cascading.operation.regex.RegexGenerator;
 import cascading.pipe.Each;
 import cascading.pipe.Every;
 import cascading.pipe.GroupBy;
@@ -33,14 +21,22 @@ import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
 import cascading.tap.local.FileTap;
 import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
+import org.apache.commons.cli.*;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Properties;
 
 public class WordCount {
 
   @SuppressWarnings("rawtypes")
   public static Pipe buildWordCountAssembly() {
     Pipe assembly = new Pipe("wordcount");
-    String regex = "(?<!\\pL)(?=\\pL)[^ ]*(?<=\\pL)(?!\\pL)";
-    Function function = new RegexGenerator(new Fields("word"), regex);
+    Function function = new LineAnalyzer(new Fields("word"));
     assembly = new Each(assembly, new Fields("line"), function);
     assembly = new GroupBy(assembly, new Fields("word"));
     Aggregator count = new Count(new Fields("count"));
@@ -48,7 +44,7 @@ public class WordCount {
     return assembly;
   }
 
-  @SuppressWarnings({ "rawtypes", "unchecked" })
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public static void main(String[] args) throws ParseException {
 
     Options options = new Options();
@@ -83,8 +79,7 @@ public class WordCount {
           "word", "count"));
       sink = new FileTap(sinkScheme, outputPath, SinkMode.REPLACE);
       flowConnector = new LocalFlowConnector(properties);
-    }
-    else {
+    } else {
       Scheme sourceScheme = new TextLine(new Fields("num", "line"));
       source = new Hfs(sourceScheme, inputPath);
       Scheme sinkScheme = new TextLine(new Fields("word", "count"));
@@ -95,8 +90,7 @@ public class WordCount {
         properties = FlowRuntimeProps.flowRuntimeProps().setGatherPartitions(4)
             .buildProperties(properties);
         flowConnector = new Hadoop2TezFlowConnector(properties);
-      }
-      else {
+      } else {
         flowConnector = new Hadoop2MR1FlowConnector(properties);
       }
     }
@@ -105,6 +99,35 @@ public class WordCount {
         .addTailSink(buildWordCountAssembly(), sink).setName("word-count");
 
     Flow flow = flowConnector.connect(def);
+    flow.writeDOT("/tmp/wordcount.dot");
     flow.complete();
+  }
+
+  public static class LineAnalyzer extends BaseOperation implements Function {
+    public LineAnalyzer(Fields fieldsDeclaration) {
+      super(1, fieldsDeclaration);
+    }
+
+    @Override
+    public void operate(FlowProcess flowProcess, FunctionCall functionCall) {
+      String value = functionCall.getArguments().getString(0);
+
+      if (value == null)
+        value = "";
+
+
+      EnglishAnalyzer analyzer = new EnglishAnalyzer();
+      try (TokenStream tStream = analyzer.tokenStream("contents", new StringReader(value))) {
+        CharTermAttribute term = tStream.addAttribute(CharTermAttribute.class);
+        tStream.reset();
+        while (tStream.incrementToken()) {
+          Tuple output = new Tuple();
+          output.addString(term.toString());
+          functionCall.getOutputCollector().add(output);
+        }
+      } catch (IOException e) {
+        throw new IllegalArgumentException("Invalid input value: " + value);
+      }
+    }
   }
 }

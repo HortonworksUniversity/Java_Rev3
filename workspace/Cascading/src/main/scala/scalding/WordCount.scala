@@ -1,12 +1,25 @@
 package scalding
 
-import com.twitter.scalding._
-import cascading.flow.tez.FlowProcessor
+import java.io.StringReader
 
-class WordCountJob(args: Args) extends Job(args) {
+import com.twitter.scalding._
+import org.apache.lucene.analysis.Analyzer
+import org.apache.lucene.analysis.en.EnglishAnalyzer
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
+
+import scala.collection.mutable.ArrayBuffer
+
+object WordCount {
+  val analyzer = new EnglishAnalyzer
+}
+
+class WordCount(args: Args) extends Job(args) {
+
   TextLine(args("input"))
-    .flatMap('line -> 'word) { line: String => line.split("""\s+""") }
-    .groupBy('word) { _.size }
+    .flatMap('line -> 'word) { line: String => analyzeLine(line, WordCount.analyzer) }
+    .groupBy('word) {
+    _.size
+  }
     .write(Tsv(args("output")))
 
   override def config: Map[AnyRef, AnyRef] = {
@@ -32,5 +45,20 @@ class WordCountJob(args: Args) extends Job(args) {
       true
     }
   }
+
+  def analyzeLine(line: String, analyzer: Analyzer) = {
+    val result = new ArrayBuffer[String]
+    val tStream = analyzer.tokenStream("contents", new StringReader(line))
+    val term: CharTermAttribute = tStream.addAttribute(classOf[CharTermAttribute])
+
+    tStream.reset
+    while (tStream.incrementToken) {
+      result += term.toString
+    }
+    tStream.close
+
+    result
+  }
+
 }
 

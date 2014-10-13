@@ -1,8 +1,12 @@
 project.ext.archiveName = 'cascade.jar'
-project.ext.cascadingVersion = '3.0.0-wip-+'
+project.ext.cascadingVersion = '3.0.0-wip-51'
 project.ext.scaldingVersion = '0.11.2'
+project.ext.luceneVersion = '4.10.1'
 
 apply plugin: 'scala'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 archivesBaseName = 'cascade'
 
@@ -27,7 +31,7 @@ dependencies {
   cascading "cascading:cascading-xml:$project.ext.cascadingVersion"
   cascading "cascading:cascading-hadoop2-mr1:$project.ext.cascadingVersion"
   cascading "cascading:cascading-hadoop2-tez:$project.ext.cascadingVersion"
-  
+  cascading "org.apache.lucene:lucene-analyzers-common:$project.ext.luceneVersion"
   testCompile "cascading:cascading-platform:$project.ext.cascadingVersion"
 }
 
@@ -37,6 +41,10 @@ jar {
     into( 'lib' ) { from configurations.cascading }
   }
   destinationDir = new File("${project.projectDir}")
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.1'
 }
 
 
