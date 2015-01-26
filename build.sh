@@ -2,6 +2,10 @@
 
 . /root/dockerfiles/start_scripts/build.sh $@ && (echo "Parent build.sh failed"; exit 1)
 
+# The repos have changed, so this code updates the repos on the local Ubuntu host
+rm -rf /etc/apt/sources.list.d/hdp.list
+wget http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.1.5.0/hdp.list -O /etc/apt/sources.list.d/hdp.list
+
 apt-get update
 apt-get -y install curl
 
