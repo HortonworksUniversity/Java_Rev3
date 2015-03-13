@@ -33,6 +33,10 @@ import org.slf4j.LoggerFactory;
 public class StockDividendFilter extends Configured implements Tool {
   private static final String FILTER_FILE = "filters/dividendfilter";
 
+  private enum BloomCounters {
+    FALSE_POSITIVES;
+  }
+
   private enum JoinData {
     DIVIDENDS, STOCKS;
   }
@@ -193,6 +197,7 @@ public class StockDividendFilter extends Configured implements Tool {
       if (dividend == null) {
         LOG.warn("False positive detected for stock: {}", key.getKey()
             .toString());
+        context.getCounter(BloomCounters.FALSE_POSITIVES).increment(1);
       }
     }
 
