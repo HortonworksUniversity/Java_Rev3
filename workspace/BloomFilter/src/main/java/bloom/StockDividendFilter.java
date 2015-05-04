@@ -27,15 +27,20 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.hadoop.util.bloom.BloomFilter;
 import org.apache.hadoop.util.bloom.Key;
 import org.apache.hadoop.util.hash.Hash;
+import org.htuple.ShuffleUtils;
+import org.htuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class StockDividendFilter extends Configured implements Tool {
   private static final String FILTER_FILE = "filters/dividendfilter";
 
   private enum BloomCounters {
-    FALSE_POSITIVES;  
+    FALSE_POSITIVES;
+  }
+
+  private enum TupleFields {
+    TYPE, SYMBOL, DATE;
   }
 
   private enum JoinData {
@@ -46,88 +51,9 @@ public class StockDividendFilter extends Configured implements Tool {
     private String stockSymbol;
     private NullWritable outputKey = NullWritable.get();
 
-    
+
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
-        stockSymbol = context.getConfiguration().get("stockSymbol");
-    }
-
-    @Override
-    protected void map(LongWritable key, Text value, Context context)
-            throws IOException, InterruptedException {
-        String [] words = StringUtils.split(value.toString(),'\\',',');
-        if(words[1].equals(stockSymbol)) {
-            Stock stock = new Stock(words[1], words[2]);
-            Key stockKey = new Key(stock.toString().getBytes());
-            outputValue.add(stockKey);
-        }
-    }
-
-
-    @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
-
-    }   
-  }
-
-  public static class BloomReducer extends Reducer<NullWritable, BloomFilter, NullWritable, NullWritable> {
-    
-    @Override
-    protected void setup(Context context) throws IOException,
-            InterruptedException {
-
-    }
-
-    @Override
-    protected void reduce(NullWritable key, Iterable<BloomFilter> values, Context context)
-            throws IOException, InterruptedException {          
-
-    }
-
-    @Override
-    protected void cleanup(Context context) throws IOException,
-            InterruptedException {
-
-    }
-  }
-
-
-  public static class StockFilterMapper extends Mapper<LongWritable, Text, StockTaggedKey, DoubleWritable> {
-    private BloomFilter dividends;
-    private String stockSymbol;
-    private DoubleWritable outputValue = new DoubleWritable();
-    Stock outputKey = new Stock();
-    
-    @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
-        Path filter_file = new Path(FILTER_FILE);
-        stockSymbol = context.getConfiguration().get("stockSymbol");
-
-        //Initialize the dividends field
-
-    }
-    
-    @Override
-    protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        String [] words = StringUtils.split(value.toString(),'\\',',');
-        if(words[1].equals(stockSymbol)) {
-            outputKey.setSymbol(words[1]);
-            outputKey.setDate(words[2]);
-            //Instantiate a Bloom Key using outputKey, then check for membership in the Bloom filter
-            Key stockKey = new Key(outputKey.toString().getBytes());
-
-        }
-    }
-  }
-
-  public static class DividendMapper extends Mapper<LongWritable, Text, StockTaggedKey, DoubleWritable> {
-    private String stockSymbol;
-    private DoubleWritable outputValue = new DoubleWritable();
-    Stock outputKey = new Stock();
-
-    @Override
-    protected void setup(Context context) throws IOException,
-    InterruptedException {
       stockSymbol = context.getConfiguration().get("stockSymbol");
     }
 
@@ -136,24 +62,105 @@ public class StockDividendFilter extends Configured implements Tool {
         throws IOException, InterruptedException {
       String[] words = StringUtils.split(value.toString(), '\\', ',');
       if (words[1].equals(stockSymbol)) {
-        outputKey.setSymbol(words[1]);
-        outputKey.setDate(words[2]);
-        outputValue.set(Double.parseDouble(words[3]));
-        context.write(new StockTaggedKey(JoinData.DIVIDENDS.ordinal(),
-            outputKey), outputValue);
+        Tuple stock = new Tuple();
+        stock.setString(TupleFields.SYMBOL, words[1]);
+        stock.setString(TupleFields.DATE, words[2]);
+        Key stockKey = new Key(stock.toString().getBytes());
+        outputValue.add(stockKey);
+      }
+    }
+
+
+    @Override
+    protected void cleanup(Context context) throws IOException, InterruptedException {
+
+    }
+  }
+
+  public static class BloomReducer extends Reducer<NullWritable, BloomFilter, NullWritable, NullWritable> {
+
+    @Override
+    protected void setup(Context context) throws IOException,
+        InterruptedException {
+
+    }
+
+    @Override
+    protected void reduce(NullWritable key, Iterable<BloomFilter> values, Context context)
+        throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    protected void cleanup(Context context) throws IOException,
+        InterruptedException {
+
+    }
+  }
+
+
+  public static class StockFilterMapper extends Mapper<LongWritable, Text, Tuple, DoubleWritable> {
+    private BloomFilter dividends;
+    private String stockSymbol;
+    private DoubleWritable outputValue = new DoubleWritable();
+    Tuple outputKey = new Tuple();
+
+    @Override
+    protected void setup(Context context) throws IOException, InterruptedException {
+      Path filter_file = new Path(FILTER_FILE);
+      stockSymbol = context.getConfiguration().get("stockSymbol");
+
+      //Initialize the dividends field
+
+    }
+
+    @Override
+    protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+      String[] words = StringUtils.split(value.toString(), '\\', ',');
+      if (words[1].equals(stockSymbol)) {
+        outputKey.setString(TupleFields.SYMBOL, words[1]);
+        outputKey.setString(TupleFields.DATE, words[2]);
+        //Instantiate a Bloom Key using outputKey, then check for membership in the Bloom filter
+        Key stockKey = new Key(outputKey.toString().getBytes());
+
       }
     }
   }
-  
+
+  public static class DividendMapper extends Mapper<LongWritable, Text, Tuple, DoubleWritable> {
+    private String stockSymbol;
+    private DoubleWritable outputValue = new DoubleWritable();
+    Tuple outputKey = new Tuple();
+
+    @Override
+    protected void setup(Context context) throws IOException,
+        InterruptedException {
+      stockSymbol = context.getConfiguration().get("stockSymbol");
+    }
+
+    @Override
+    protected void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+      String[] words = StringUtils.split(value.toString(), '\\', ',');
+      if (words[1].equals(stockSymbol)) {
+        outputKey.setString(TupleFields.SYMBOL, words[1]);
+        outputKey.setString(TupleFields.DATE, words[2]);
+        outputKey.setInt(TupleFields.TYPE, JoinData.DIVIDENDS.ordinal());
+        outputValue.set(Double.parseDouble(words[3]));
+        context.write(outputKey, outputValue);
+      }
+    }
+  }
+
   public static class StockFilterReducer extends
-      Reducer<StockTaggedKey, DoubleWritable, Text, DoubleWritable> {
+      Reducer<Tuple, DoubleWritable, Text, DoubleWritable> {
     private static final Logger LOG = LoggerFactory
         .getLogger(StockFilterReducer.class);
     private Text outputKey = new Text();
 
     @Override
-    protected void reduce(StockTaggedKey key, Iterable<DoubleWritable> values,
-        Context context) throws IOException, InterruptedException {
+    protected void reduce(Tuple key, Iterable<DoubleWritable> values,
+                          Context context) throws IOException, InterruptedException {
       DoubleWritable dividend = null;
 
       for (DoubleWritable value : values) {
@@ -161,20 +168,19 @@ public class StockDividendFilter extends Configured implements Tool {
         // stock data if there's a matching dividend record. False positives
         // from the bloom filter could have caused some extra stock records to
         // be sent to the reducer
-        if (key.getTag() == JoinData.DIVIDENDS.ordinal()) {
+        if (key.getInt(TupleFields.TYPE) == JoinData.DIVIDENDS.ordinal()) {
           // Copy the dividend so that the framework doesn't overwrite it the
           // next time through the loop
           dividend = new DoubleWritable(value.get());
         }
         else if (dividend != null) {
-          outputKey.set(key.getKey().toString());
+          outputKey.set(key.toString());
           context.write(outputKey, value);
         }
       }
 
       if (dividend == null) {
-        LOG.warn("False positive detected for stock: {}", key.getKey()
-            .toString());
+        LOG.warn("False positive detected for stock: {}", key.toString());
         context.getCounter(BloomCounters.FALSE_POSITIVES).increment(1);
       }
     }
@@ -224,13 +230,17 @@ public class StockDividendFilter extends Configured implements Tool {
     job2.setReducerClass(StockFilterReducer.class);
 
     job2.setOutputFormatClass(TextOutputFormat.class);
-    job2.setMapOutputKeyClass(StockTaggedKey.class);
+    job2.setMapOutputKeyClass(Tuple.class);
     job2.setMapOutputValueClass(DoubleWritable.class);
     job2.setOutputKeyClass(Text.class);
     job2.setOutputValueClass(DoubleWritable.class);
 
-    job2.setPartitionerClass(TaggedKeyHashPartitioner.class);
-    job2.setGroupingComparatorClass(StockTaggedKeyGroupingComparator.class);
+    ShuffleUtils.configBuilder()
+        .useNewApi()
+        .setPartitionerIndices(TupleFields.SYMBOL, TupleFields.DATE)
+        .setSortIndices(TupleFields.values())
+        .setGroupIndices(TupleFields.SYMBOL, TupleFields.DATE)
+        .configure(job2.getConfiguration());
 
     boolean job2success = job2.waitForCompletion(true);
     if (!job2success) {

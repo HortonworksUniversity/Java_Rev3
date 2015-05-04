@@ -1,5 +1,5 @@
 project.ext.mainclass = 'grep.Grep'
 project.ext.archiveName = 'grep.jar'
 
-apply from: '/root/java/labs/build.gradle'
+apply from: '../../../build.gradle'
 

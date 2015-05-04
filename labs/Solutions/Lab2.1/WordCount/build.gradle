@@ -1,5 +1,5 @@
 project.ext.mainclass = 'wordcount.WordCountJob'
 project.ext.archiveName = 'wordcount.jar'
 
-apply from: '/root/java/labs/build.gradle'
+apply from: '../../../build.gradle'
 

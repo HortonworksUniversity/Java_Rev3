@@ -1,5 +1,25 @@
 project.ext.mainclass = 'bloom.StockDividendFilter'
 project.ext.archiveName = 'bloomfilter.jar'
 
-apply from: '/root/java/labs/build.gradle'
+apply from: '../../../build.gradle'
 
+configurations {
+  htuple
+  compile {
+    extendsFrom htuple
+  }
+}
+
+dependencies {
+  htuple 'org.htuple:htuple-core:0.1.1'
+}
+
+task copyHTupleToLib(type: Copy) {
+  into "$buildDir/output/fatjar/lib"
+  from configurations.htuple
+  include "htuple*"
+}
+jar.dependsOn(copyHTupleToLib)
+jar {
+  from "$buildDir/output/fatjar"
+}
