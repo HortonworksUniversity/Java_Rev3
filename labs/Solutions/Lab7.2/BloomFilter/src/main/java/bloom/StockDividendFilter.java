@@ -114,7 +114,6 @@ public class StockDividendFilter extends Configured implements Tool {
     private BloomFilter dividends;
     private String stockSymbol;
     private DoubleWritable outputValue = new DoubleWritable();
-    Tuple outputKey = new Tuple();
 
     @Override
     protected void setup(Context context) throws IOException,
@@ -134,6 +133,7 @@ public class StockDividendFilter extends Configured implements Tool {
         throws IOException, InterruptedException {
       String[] words = StringUtils.split(value.toString(), '\\', ',');
       if (words[1].equals(stockSymbol)) {
+        Tuple outputKey = new Tuple();
         outputKey.setString(TupleFields.SYMBOL, words[1]);
         outputKey.setString(TupleFields.DATE, words[2]);
         // Instantiate a Key and check for membership in the Bloom filter
@@ -259,7 +259,7 @@ public class StockDividendFilter extends Configured implements Tool {
     ShuffleUtils.configBuilder()
         .useNewApi()
         .setPartitionerIndices(TupleFields.SYMBOL, TupleFields.DATE)
-        .setSortIndices(TupleFields.values())
+        .setSortIndices(TupleFields.SYMBOL, TupleFields.DATE, TupleFields.TYPE)
         .setGroupIndices(TupleFields.SYMBOL, TupleFields.DATE)
         .configure(job2.getConfiguration());
 
